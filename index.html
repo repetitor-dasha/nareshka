@@ -263,10 +263,13 @@ textarea.msg { width: 100%; padding: 10px 12px; font: inherit; font-size: 15px; 
 .about { display: flex; flex-direction: column; gap: 16px; max-width: 680px; }
 .about-head { display: flex; gap: 16px; align-items: center; }
 .about-photo { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; flex: none; border: 3px solid var(--accent-soft); }
-.about-name { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.2; }
+.about-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(17px, 4.6vw, 22px); line-height: 1.2; overflow-wrap: anywhere; }
+.about-head > div { min-width: 0; }
 .about-facts { display: flex; flex-direction: column; gap: 6px; padding-left: 20px; font-weight: 600; }
 .about-p { line-height: 1.6; }
 .about-h { font-size: 20px; margin-top: 8px; }
+.about-sec { display: flex; flex-direction: column; gap: 8px; }
+.about-list { display: flex; flex-direction: column; gap: 6px; padding-left: 20px; line-height: 1.5; }
 .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .rule-btn { min-height: 32px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 @media (hover: hover) { .rule-btn:hover { background: var(--accent-soft); } }
@@ -2011,19 +2014,45 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     short: 'Дарья Александровна',
     withName: 'Дарьей Александровной',  // «заниматься с …»
     toName: 'Дарье Александровне',       // «написать …»
-    photo: '',            // имя файла фото рядом с index.html, например 'daria.jpg'
-    telegram: '',         // ссылка https://t.me/имя
-    vk: '',               // ссылка на сообщество ВК
-    vkMessage: '',        // ссылка «написать сообществу»: https://vk.me/имя_сообщества
-    tiktok: '',           // https://www.tiktok.com/@имя
-    instagram: '',        // https://www.instagram.com/имя
+    photo: 'tutor.jpg',   // файл фото рядом с index.html
+    telegram: 'https://t.me/dariix_xx',
+    vk: 'https://vk.ru/repetitordashabeep',          // сообщество ВК
+    vkMessage: 'https://vk.me/repetitordashabeep',   // написать сообществу
+    vkPersonal: 'https://vk.ru/dasha_beep',          // личная страница ВК
+    tiktok: 'https://www.tiktok.com/@repetitor.dasha',
+    instagram: 'https://www.instagram.com/goreva.rus',
     email: '',            // адрес почты
     trialLink: '',        // куда вести кнопку «Пробный урок» (если пусто — Telegram или сообщения ВК)
     about: {
-      lead: '',           // одна-две фразы под заголовком
-      paragraphs: [],     // абзацы о себе
-      facts: [],          // короткие факты: «Опыт 5 лет», «Средний балл учеников — 85»
-      price: ''           // формат и стоимость занятий (по желанию)
+      lead: 'Меня зовут Даша, я репетитор по русскому языку. Готовлю к ОГЭ и ЕГЭ учеников 8–11 классов.',
+      facts: [
+        'Сама сдала ЕГЭ по русскому на 91 балл — знаю все ловушки и формат экзамена изнутри',
+        'Мои ученики сдают ЕГЭ в среднем на 80+, а ОГЭ пишут на 4 и 5',
+        'Опыт репетиторства — 2 года',
+        'Получаю профильное педагогическое образование',
+        'Работала куратором в онлайн-школе: проверяла сочинения ЕГЭ, помогала с теорией и поддерживала учеников'
+      ],
+      paragraphs: [],
+      sections: [
+        { title: 'Как проходят занятия', items: [
+          'Онлайн, индивидуально, на интерактивной доске.',
+          'Идём по блокам, последовательно, ничего не пропускаем.',
+          'Сначала разбираем теорию, потом отрабатываем на реальных заданиях.'
+        ] },
+        { title: 'Что готовим', items: [
+          'ОГЭ: тест, сочинение 13.3, изложение, итоговое собеседование.',
+          'ЕГЭ: тест, сочинение 27, итоговое сочинение.'
+        ] },
+        { title: 'Стоимость', items: [
+          'Подготовка к ЕГЭ — 1200 ₽ за 60 минут.',
+          'Подготовка к ОГЭ — 1000 ₽ за 60 минут.'
+        ] },
+        { title: 'Акции', items: [
+          'Бесплатный пробный урок. Это полноценная диагностика: смотрю текущий уровень, нахожу слабые места и составляю индивидуальный план подготовки.',
+          '«Приведи друга». Если приводишь друга или одноклассника и он после бесплатного пробного урока оплачивает одно занятие, ты получаешь один бесплатный урок.'
+        ] }
+      ],
+      price: ''
     }
   };
 
@@ -2034,6 +2063,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   ].filter(Boolean);
   const socials = () => [
     TUTOR.vk && { icon: '👥', name: 'Сообщество ВКонтакте', href: TUTOR.vk },
+    TUTOR.vkPersonal && { icon: '🙋‍♀️', name: 'ВКонтакте (личная страница)', href: TUTOR.vkPersonal },
     TUTOR.telegram && { icon: '✈️', name: 'Telegram', href: TUTOR.telegram },
     TUTOR.tiktok && { icon: '🎵', name: 'TikTok', href: TUTOR.tiktok },
     TUTOR.instagram && { icon: '📸', name: 'Instagram', href: TUTOR.instagram },
@@ -2111,8 +2141,12 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
         a.lead && h('p', { class: 'lede', text: a.lead }),
         a.facts.length > 0 && h('ul', { class: 'about-facts' }, a.facts.map(f => h('li', { text: f }))),
         a.paragraphs.map(p => h('p', { class: 'about-p', text: p })),
+        (a.sections || []).map(sec => h('div', { class: 'about-sec' },
+          h('h2', { class: 'about-h', text: sec.title }),
+          h('ul', { class: 'about-list' }, sec.items.map(x => h('li', { text: x })))
+        )),
         a.price && h('p', { class: 'privacy', text: a.price }),
-        enabled() && h('button', { class: 'btn primary', type: 'button', text: '📝 Записаться на пробный урок', onclick: trial }),
+        enabled() && h('button', { class: 'btn primary', type: 'button', text: '📝 Записаться на бесплатный пробный урок', onclick: trial }),
         socials().length > 0 && h('h2', { class: 'about-h', text: 'Где меня найти' }),
         socials().length > 0 && h('div', { class: 'contacts' }, socials().map(x => linkRow(x)))
       )
@@ -2133,7 +2167,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     const cards = el.querySelector('.home-cards');
     if (cards) cards.append(h('button', { class: 'hcard action tutor', type: 'button', onclick: trial },
       h('b', { text: '👩‍🏫 Хочу заниматься с ' + TUTOR.withName }),
-      h('span', { text: 'Запишитесь на пробный урок: разберём ваши слабые места и составим план подготовки.' })
+      h('span', { text: 'Бесплатный пробный урок: посмотрим ваш уровень, найдём слабые места и составим план подготовки.' })
     ));
     el.append(h('footer', { class: 'tutor-foot' },
       hasAbout() && h('button', { class: 'linkbtn', type: 'button', text: 'О репетиторе', onclick: () => go('about') }),
