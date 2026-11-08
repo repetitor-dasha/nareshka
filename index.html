@@ -6,6 +6,12 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>нарешка</title>
 <meta name="description" content="Карточки для подготовки к ЕГЭ и ОГЭ по русскому языку: ударения, паронимы, лексические нормы.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2743c4">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="нарешка">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
@@ -273,9 +279,73 @@ pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px;
 .nick-list { display: flex; flex-direction: column; gap: 6px; }
 .nick { min-height: 44px; padding: 8px 14px; text-align: left; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); font-weight: 600; font-size: 16px; cursor: pointer; }
 .nick[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.home-extras { display: contents; }
+.home-cards { order: 3; }
+.home-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.hcard { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.hcard b { font-size: 16px; color: var(--fg); }
+.hcard.done { border-color: var(--ok); background: var(--ok-soft); }
+.hcard.action { cursor: pointer; border: 2px solid var(--accent); }
+@media (hover: hover) { .hcard.action:hover { background: var(--accent-soft); } }
+.tile-prog { display: flex; align-items: center; gap: 10px; }
+.tile-prog .progress { flex: 1; margin: 0; }
+.badges { display: flex; flex-direction: column; gap: 6px; }
+.badge { display: flex; gap: 12px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; opacity: .5; filter: grayscale(1); }
+.badge.on { opacity: 1; filter: none; border-color: var(--accent); background: var(--accent-soft); }
+.badge-icon { font-size: 26px; flex: none; width: 34px; text-align: center; }
+.badge-text { display: flex; flex-direction: column; font-size: 14px; }
+.badge-text small { color: var(--muted); font-size: 13px; }
+.ach-title { margin: 6px 0 0; font-size: 17px; }
+.ach-progress { display: flex; flex-direction: column; gap: 6px; }
+.ach-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 44px; gap: 8px; align-items: center; font-size: 14px; }
+.ach-row .progress { margin: 0; }
+.who-badges { margin-left: 6px; font-size: 15px; letter-spacing: 2px; }
+.who-badges.big { margin: 0; font-size: 24px; }
+.stat-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat { display: flex; flex-direction: column; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 110px; }
+.stat b { font-size: 24px; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 13px; }
+.day-cells { display: flex; flex-wrap: wrap; gap: 4px; }
+.day-cell { width: 16px; height: 16px; border-radius: 4px; background: var(--surface-2); }
+.day-cell.lvl1 { background: color-mix(in srgb, var(--ok) 35%, var(--surface-2)); }
+.day-cell.lvl2 { background: color-mix(in srgb, var(--ok) 65%, var(--surface-2)); }
+.day-cell.lvl3 { background: var(--ok); }
+.tbl tr.bad-row td { background: var(--bad-soft); }
 .help-item { display: flex; flex-direction: column; gap: 3px; font-size: 15px; }
 .help-item span { color: var(--muted); }
 .field-note { font-weight: 400; font-size: 13px; color: var(--muted); }
+.privacy { font-size: 14px; color: var(--muted); padding: 10px 12px; background: var(--surface-2); border-radius: 10px; }
+.form-err { color: var(--bad); font-size: 14px; min-height: 1em; }
+.big-code { font-family: var(--font-display); font-size: clamp(30px, 9vw, 42px); font-weight: 700; letter-spacing: .04em; color: var(--accent); text-align: center; font-variant-numeric: tabular-nums; }
+select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 12px; max-width: 680px; }
+.tab { flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
+.tab.on { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(24, 32, 54, .15); }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.rating { list-style: none; margin: 0; padding: 0; max-width: 680px; display: flex; flex-direction: column; gap: 6px; }
+.rating li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.rating li.mine { border-color: var(--accent); background: var(--accent-soft); }
+.rating .place { width: 2em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rating .who { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.rating .pts { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.teacher-login { max-width: 420px; }
+.teacher-sec { display: flex; flex-direction: column; gap: 10px; }
+.teacher-sec h2 { font-size: 20px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tbl { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tbl th, .tbl td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.tbl th { background: var(--surface-2); font-weight: 600; white-space: nowrap; }
+.tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl .mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.userbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 14px 16px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; font-size: 15px; }
+.choice b { font-size: 17px; }
+.choice span { color: var(--muted); }
+@media (hover: hover) { .choice:hover { border-color: var(--accent); background: var(--accent-soft); } }
+.nick-list { display: flex; flex-direction: column; gap: 6px; }
+.nick { min-height: 44px; padding: 8px 14px; text-align: left; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); font-weight: 600; font-size: 16px; cursor: pointer; }
+.nick[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .privacy { font-size: 14px; color: var(--muted); padding: 10px 12px; background: var(--surface-2); border-radius: 10px; }
 .form-err { color: var(--bad); font-size: 14px; min-height: 1em; }
 .big-code { font-family: var(--font-display); font-size: clamp(30px, 9vw, 42px); font-weight: 700; letter-spacing: .04em; color: var(--accent); text-align: center; font-variant-numeric: tabular-nums; }
@@ -434,6 +504,10 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       item('Что такое личный код', 'После регистрации вы получаете код из 8 цифр, например 4821-7356. Он заменяет логин и пароль. На этом устройстве сайт запомнит вас сам, а код нужен, чтобы войти с другого телефона или компьютера.'),
       item('Как войти с другого устройства', 'Нажмите «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду» и введите свой код. Забыли код — посмотрите его на старом устройстве (кнопка с вашим ником на главной) или спросите у преподавателя.'),
       item('Как получить очки', 'Решайте карточки. Очко даётся за карточку, решённую верно с первой попытки. В течение недели каждая карточка приносит очко один раз, а в понедельник недельный рейтинг начинается заново.'),
+      item('Мои ошибки', 'Карточки, где вы ошиблись с первой попытки, попадают в список «Повторить мои ошибки» на главной. Когда ответите на карточку верно с первой попытки, она уйдёт из списка.'),
+      item('Серия дней', `День засчитывается, если вы решили хотя бы ${DAY_MIN} карточек. Занимайтесь каждый день, чтобы серия росла. Пропустили день — серия начнётся заново.`),
+      item('Значки и прогресс', 'Значки даются за серии, количество карточек и за полностью выученные темы. Их видно в «Достижениях», а у зарегистрированных — ещё и рядом с ником в рейтинге. Полоска на плитке показывает, какая доля карточек темы уже решена верно.'),
+      item('Как поставить на телефон', 'Android (Chrome): меню ⋮ → «Установить приложение» или «Добавить на главный экран». iPhone (Safari): кнопка «Поделиться» → «На экран «Домой»». Сайт откроется как приложение и будет работать даже без интернета, а ответы отправятся, когда сеть появится.'),
       h('div', { class: 'dlg-actions' },
         h('button', { class: 'btn primary', type: 'button', text: back ? 'Понятно, назад' : 'Понятно', onclick: () => (back ? back() : closeModal()) })
       )
@@ -570,6 +644,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       h('p', { text: 'Ваш личный код:' }),
       h('p', { class: 'big-code', text: me.code }),
       h('p', { class: 'dlg-sub', text: 'Введите его на другом устройстве: «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду».' }),
+      h('button', { class: 'btn', type: 'button', text: '🏅 Мои достижения', onclick: achievements }),
       h('div', { class: 'dlg-actions' },
         h('button', { class: 'btn quiet', type: 'button', text: 'Выйти на этом устройстве', onclick: () => {
           flushTrack();
@@ -586,19 +661,220 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   function saveMe(v) {
     me = v;
     lsSet(ME_KEY, v);
-    if (v) lsSet(ASKED_KEY, true);
+    server = null;
+    if (v) { lsSet(ASKED_KEY, true); loadServerStats(); }
   }
 
   /* ---------- Запись ответов ---------- */
   let queue = lsGet(QUEUE_KEY) || [];
   let flushing = false;
 
+  /* ---------- Локальный прогресс: ошибки, серия дней, выученные карточки ---------- */
+  const PROG_KEY = 'nareshka-progress';
+  const MIST_KEY = 'nareshka-mistakes';
+  const DAYS_KEY = 'nareshka-days';
+  const FLAGS_KEY = 'nareshka-flags';
+  const BADGES_SENT_KEY = 'nareshka-badges-sent';
+  const DAY_MIN = 10; // день засчитывается в серию после 10 карточек
+  let progress = lsGet(PROG_KEY) || {}; // { модуль: [ключи карточек, решённых верно с первой попытки] }
+  let mistakes = lsGet(MIST_KEY) || {}; // { ключ карточки: { m: модуль, t: время } }
+  let days = lsGet(DAYS_KEY) || {};     // { 'ГГГГ-ММ-ДД': сколько ответов }
+  let flags = lsGet(FLAGS_KEY) || {};   // { night, early }
+  let server = null;                    // статистика с сервера (для зарегистрированных)
+  const progSets = {};
+  const progSet = id => progSets[id] || (progSets[id] = new Set(progress[id] || []));
+  const dateKey = d => {
+    const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return z.toISOString().slice(0, 10);
+  };
+
   window.trackAnswer = (s, card, ok) => {
-    if (!me || s.round !== 1) return; // в зачёт идёт только первая попытка
-    queue.push({ m: s.mod.id, p: card.part || '', k: cardKey(card).slice(0, 200), c: !!ok });
+    const mod = (s.mod.modOf && s.mod.modOf.get(card)) || s.mod;
+    const key = cardKey(card);
+    const first = s.round === 1; // в зачёт идёт только первая попытка
+    if (first && ok) {
+      const set = progSet(mod.id);
+      if (!set.has(key)) { set.add(key); progress[mod.id] = [...set]; lsSet(PROG_KEY, progress); }
+      if (mistakes[key]) { delete mistakes[key]; lsSet(MIST_KEY, mistakes); }
+    } else if (first) {
+      mistakes[key] = { m: mod.id, t: Date.now() };
+      lsSet(MIST_KEY, mistakes);
+    }
+    const now = new Date();
+    const d = dateKey(now);
+    days[d] = (days[d] || 0) + 1;
+    lsSet(DAYS_KEY, days);
+    const hr = now.getHours();
+    if (hr >= 22 && !flags.night) { flags.night = true; lsSet(FLAGS_KEY, flags); }
+    if (hr >= 4 && hr < 7 && !flags.early) { flags.early = true; lsSet(FLAGS_KEY, flags); }
+    if (!me || !first || mod.virtual) return;
+    queue.push({ m: mod.id, p: card.part || '', k: key.slice(0, 200), c: !!ok });
     lsSet(QUEUE_KEY, queue);
     if (queue.length >= 10) flushTrack();
   };
+
+  function progressOf(mod) {
+    if (!mod.cards.length) return 0;
+    const local = progSet(mod.id).size;
+    const remote = server && server.modules ? Number(server.modules[mod.id] || 0) : 0;
+    return Math.min(100, Math.floor(Math.max(local, remote) / mod.cards.length * 100));
+  }
+
+  window.tileExtra = mod => (mod.cards.length
+    ? h('div', { class: 'tile-prog' },
+        h('div', { class: 'progress' }, h('i', { style: `width:${progressOf(mod)}%` })),
+        h('span', { class: 'count', text: `выучено ${progressOf(mod)}%` }))
+    : '');
+
+  function allDays() {
+    const all = { ...days };
+    if (server && server.days) for (const [d, n] of Object.entries(server.days)) all[d] = Math.max(all[d] || 0, Number(n));
+    return all;
+  }
+
+  function streakInfo() {
+    const all = allDays();
+    const d = new Date();
+    const todayCount = all[dateKey(d)] || 0;
+    const doneToday = todayCount >= DAY_MIN;
+    if (!doneToday) d.setDate(d.getDate() - 1);
+    let n = 0;
+    while ((all[dateKey(d)] || 0) >= DAY_MIN) { n++; d.setDate(d.getDate() - 1); }
+    if (doneToday) n = Math.max(n, 1);
+    // лучшая серия за всё время
+    const good = Object.keys(all).filter(k => all[k] >= DAY_MIN).sort();
+    let best = 0, run = 0, prev = null;
+    for (const k of good) {
+      const cur = new Date(k + 'T12:00:00');
+      run = prev && (cur - prev) / 86400000 === 1 ? run + 1 : 1;
+      best = Math.max(best, run);
+      prev = cur;
+    }
+    return { n, doneToday, todayCount, best };
+  }
+
+  function cardIndex() {
+    const idx = new Map();
+    for (const m of state.modules) for (const c of m.cards) {
+      const k = cardKey(c);
+      if (!idx.has(k)) idx.set(k, { card: c, mod: m });
+    }
+    return idx;
+  }
+
+  function mistakeItems() {
+    const idx = cardIndex();
+    const out = [];
+    for (const [k, v] of Object.entries(mistakes)) {
+      const hit = idx.get(k);
+      if (!hit) continue;
+      const mod = state.modules.find(m => m.id === v.m) || hit.mod;
+      out.push({ card: hit.card, mod });
+    }
+    return out;
+  }
+
+  function virtualSession(title, items) {
+    const mod = { id: 'v', title, exam: '', cards: items.map(x => x.card), virtual: true, modOf: new Map(items.map(x => [x.card, x.mod])) };
+    startSession(mod, 'all');
+  }
+
+  function dayCard() {
+    const pool = [];
+    for (const id of ['t4', 't5', 't7', 't9', 't10']) {
+      const m = state.modules.find(x => x.id === id);
+      if (m) for (const c of m.cards) pool.push({ card: c, mod: m });
+    }
+    if (!pool.length) return null;
+    let hash = 0;
+    for (const ch of dateKey(new Date())) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    return pool[(hash * 2654435761 >>> 0) % pool.length];
+  }
+
+  /* ---------- Значки ---------- */
+  const MOD_BADGES = {
+    t4: ['🎯', 'Покоритель ударений'], t5: ['🔍', 'Знаток паронимов'], t6: ['✒️', 'Мастер слова'], t7: ['📐', 'Грамматический гуру'],
+    t9: ['🥷', 'Словарный ниндзя'], t10: ['👑', 'Король приставок'], o1: ['🌳', 'Хозяин корней'], o2: ['🧭', 'Повелитель приставок'],
+    o3: ['🧩', 'Мастер суффиксов'], o4: ['🔁', 'Спрягатель'], o5: ['🎭', 'Укротитель Н и НН'], o6: ['🚫', 'Знаток НЕ и НИ'],
+    o7: ['🔗', 'Дефисный дипломат'], o8: ['🪶', 'Мягкий знаток'], o9: ['📚', 'Хранитель словаря']
+  };
+  function badgeDefs() {
+    const list = [
+      { id: 'streak3', icon: '✨', name: 'Три дня подряд', desc: `Заниматься 3 дня подряд (от ${DAY_MIN} карточек в день)`, ok: s => s.best >= 3 },
+      { id: 'streak7', icon: '🔥', name: 'Неделя без пропусков', desc: `Заниматься 7 дней подряд (от ${DAY_MIN} карточек в день)`, ok: s => s.best >= 7 },
+      { id: 'streak30', icon: '🌋', name: 'Месяц без пропусков', desc: `Заниматься 30 дней подряд (от ${DAY_MIN} карточек в день)`, ok: s => s.best >= 30 },
+      { id: 'week100', icon: '💯', name: 'Сотня за неделю', desc: '100 карточек верно с первой попытки за одну неделю (нужна регистрация)', ok: s => s.week >= 100 },
+      { id: 'total1000', icon: '🏔️', name: 'Тысячник', desc: '1000 разных карточек верно с первой попытки', ok: s => s.total >= 1000 },
+      { id: 'night', icon: '🦉', name: 'Ночная сова', desc: 'Позаниматься после 22:00', ok: s => s.night },
+      { id: 'early', icon: '🐓', name: 'Ранняя пташка', desc: 'Позаниматься с 4 до 7 утра', ok: s => s.early }
+    ];
+    for (const m of state.modules) {
+      const b = MOD_BADGES[m.id];
+      if (b && m.cards.length) list.push({ id: 'm_' + m.id, icon: b[0], name: b[1], desc: `Все карточки темы «${moduleName(m)}» (${m.exam === 'oge' ? 'ОГЭ' : 'ЕГЭ'}) решены верно`, ok: () => progressOf(m) >= 100 });
+    }
+    return list;
+  }
+  const iconOf = id => {
+    if (id.startsWith('m_')) return (MOD_BADGES[id.slice(2)] || [''])[0];
+    return { streak3: '✨', streak7: '🔥', streak30: '🌋', week100: '💯', total1000: '🏔️', night: '🦉', early: '🐓' }[id] || '';
+  };
+  function badgeState() {
+    const st = streakInfo();
+    const localTotal = Object.values(progress).reduce((n, a) => n + a.length, 0);
+    const s = {
+      best: st.best,
+      week: server ? Number(server.week || 0) : 0,
+      total: Math.max(localTotal, server ? Number(server.total || 0) : 0),
+      night: !!(flags.night || (server && server.night)),
+      early: !!(flags.early || (server && server.early))
+    };
+    return badgeDefs().map(b => ({ ...b, earned: !!b.ok(s) }));
+  }
+  function syncBadges() {
+    if (!me) return;
+    const ids = badgeState().filter(b => b.earned).map(b => b.id).sort();
+    const sent = lsGet(BADGES_SENT_KEY);
+    if (sent && sent.code === me.code && sent.ids.join() === ids.join()) return;
+    rpc('set_badges', { p_code: me.code, p_badges: ids })
+      .then(() => lsSet(BADGES_SENT_KEY, { code: me.code, ids }))
+      .catch(() => { /* попробуем в следующий раз */ });
+  }
+
+  function achievements() {
+    const st = streakInfo();
+    const list = badgeState();
+    const got = list.filter(b => b.earned).length;
+    const exams = [['ege', 'ЕГЭ'], ['oge', 'ОГЭ']];
+    openModal(h('div', { class: 'dlg' },
+      h('h2', { id: 'modal-title', text: 'Мои достижения' }),
+      h('p', { class: 'dlg-sub', text: `Серия: ${st.n} ${plural(st.n, 'день', 'дня', 'дней')} подряд, лучшая — ${st.best}. День засчитывается, если решено от ${DAY_MIN} карточек.` }),
+      h('h3', { class: 'ach-title', text: `Значки: ${got} из ${list.length}` }),
+      h('div', { class: 'badges' }, list.map(b => h('div', { class: 'badge' + (b.earned ? ' on' : '') },
+        h('span', { class: 'badge-icon', text: b.icon }),
+        h('span', { class: 'badge-text' }, h('b', { text: b.name }), h('small', { text: b.desc }))
+      ))),
+      h('h3', { class: 'ach-title', text: 'Сколько выучено' }),
+      h('p', { class: 'dlg-sub', text: 'Выученной считается карточка, которую вы хотя бы раз решили верно с первой попытки.' }),
+      exams.map(([id, name]) => {
+        const mods = state.modules.filter(m => m.exam === id && m.cards.length);
+        return mods.length ? h('div', { class: 'ach-progress' }, h('b', { text: name }), mods.map(m => h('div', { class: 'ach-row' },
+          h('span', { text: moduleName(m) }),
+          h('div', { class: 'progress' }, h('i', { style: `width:${progressOf(m)}%` })),
+          h('span', { class: 'count', text: progressOf(m) + '%' })
+        ))) : '';
+      }),
+      !me && h('p', { class: 'privacy', text: 'Без регистрации достижения хранятся только на этом устройстве и не видны в рейтинге.' }),
+      h('div', { class: 'dlg-actions' }, h('button', { class: 'btn primary', type: 'button', text: 'Закрыть', onclick: closeModal }))
+    ));
+  }
+
+  async function loadServerStats() {
+    if (!me) return;
+    try {
+      const st = await rpc('my_stats', { p_code: me.code });
+      if (st) { server = st; if (!session) route(); syncBadges(); }
+    } catch (x) { /* офлайн */ }
+  }
 
   async function flushTrack() {
     if (!me || flushing || !queue.length) return;
@@ -608,6 +884,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       await rpc('record', { p_code: me.code, p_items: batch });
       queue = queue.slice(batch.length);
       lsSet(QUEUE_KEY, queue);
+      syncBadges();
     } catch (x) {
       if (x.status === 400 && /Код не найден/.test(x.message)) { queue = []; lsSet(QUEUE_KEY, queue); }
     } finally { flushing = false; }
@@ -617,14 +894,52 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   setInterval(flushTrack, 60000);
 
   /* ---------- Главная: панель пользователя ---------- */
-  window.homeExtras = () => h('div', { class: 'userbar' },
-    me
-      ? h('button', { class: 'btn', type: 'button', onclick: profile }, '👤 ', me.nickname)
-      : h('button', { class: 'btn', type: 'button', text: 'Войти или зарегистрироваться', onclick: welcome }),
-    h('button', { class: 'btn', type: 'button', text: '🏆 Рейтинг', onclick: () => go('rating') }),
-    h('button', { class: 'btn quiet', type: 'button', text: 'Как это работает?', onclick: () => help() }),
-    h('button', { class: 'btn quiet', type: 'button', text: 'Вход для преподавателя', onclick: () => go('teacher') })
-  );
+  let installEvent = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; if (!session && !location.hash) route(); });
+
+  window.homeExtras = () => {
+    const st = streakInfo();
+    const mist = mistakeItems();
+    const dc = dayCard();
+    const left = Math.max(0, DAY_MIN - st.todayCount);
+    let dcText = '';
+    if (dc) { const q = buildQuestion(dc.card); dcText = `${q.label} ${q.prompt}`; }
+    return h('div', { class: 'home-extras' },
+      h('div', { class: 'userbar' },
+        me
+          ? h('button', { class: 'btn', type: 'button', onclick: profile }, '👤 ', me.nickname)
+          : h('button', { class: 'btn', type: 'button', text: 'Войти или зарегистрироваться', onclick: welcome }),
+        h('button', { class: 'btn', type: 'button', text: '🏆 Рейтинг', onclick: () => go('rating') }),
+        h('button', { class: 'btn', type: 'button', text: '🏅 Достижения', onclick: achievements }),
+        installEvent && h('button', { class: 'btn', type: 'button', text: '📲 Установить на телефон', onclick: async () => {
+          installEvent.prompt();
+          try { await installEvent.userChoice; } catch (x) { /* ничего */ }
+          installEvent = null;
+          route();
+        } }),
+        h('button', { class: 'btn quiet', type: 'button', text: 'Как это работает?', onclick: () => help() }),
+        h('button', { class: 'btn quiet', type: 'button', text: 'Вход для преподавателя', onclick: () => go('teacher') })
+      ),
+      h('div', { class: 'home-cards' },
+        h('div', { class: 'hcard' + (st.doneToday ? ' done' : '') },
+          h('b', { text: st.n ? `🔥 ${st.n} ${plural(st.n, 'день', 'дня', 'дней')} подряд` : '🔥 Серия дней' }),
+          h('span', { text: st.doneToday
+            ? 'Сегодня вы уже позанимались. Так держать!'
+            : `Решите сегодня ещё ${left} ${plural(left, 'карточку', 'карточки', 'карточек')}, чтобы ${st.n ? 'не потерять серию' : 'начать серию'}.` })
+        ),
+        mist.length
+          ? h('button', { class: 'hcard action', type: 'button', onclick: () => go('mistakes') },
+              h('b', { text: `🔁 Повторить мои ошибки (${mist.length})` }),
+              h('span', { text: 'Карточки, где вы ошиблись. Ответите верно с первой попытки — карточка уйдёт из списка.' }))
+          : h('div', { class: 'hcard' },
+              h('b', { text: '🔁 Мои ошибки' }),
+              h('span', { text: 'Здесь появятся карточки, где вы ошиблись, чтобы их повторить.' })),
+        dc && h('button', { class: 'hcard action', type: 'button', onclick: () => go('daycard') },
+          h('b', { text: '⭐ Карточка дня' }),
+          h('span', { text: dcText }))
+      )
+    );
+  };
 
   /* ---------- Рейтинг ---------- */
   let ratingScope = 'week';
@@ -651,7 +966,10 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       if (!rows.length) { list.replaceChildren(h('p', { class: 'empty', text: 'Пока никто не набрал очков. Начните первым!' })); return; }
       list.replaceChildren(h('ol', { class: 'rating' }, rows.map((r, i) => h('li', { class: me && r.nickname === me.nickname ? 'mine' : '' },
         h('span', { class: 'place', text: i < 3 ? ['🥇', '🥈', '🥉'][i] : String(i + 1) }),
-        h('span', { class: 'who', text: r.nickname + (me && r.nickname === me.nickname ? ' (вы)' : '') }),
+        h('span', { class: 'who' },
+          h('span', { text: r.nickname + (me && r.nickname === me.nickname ? ' (вы)' : '') }),
+          (r.badges || []).length ? h('span', { class: 'who-badges', title: 'Значки', text: (r.badges || []).map(iconOf).filter(Boolean).join(' ') }) : ''
+        ),
         h('span', { class: 'pts', text: r.points })
       ))));
     } catch (x) {
@@ -734,12 +1052,13 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     body.replaceChildren(
       h('section', { class: 'teacher-sec' },
         h('h2', { text: `Ученики (${stats.length})` }),
+        h('p', { class: 'pick-hint', text: 'Нажмите на фамилию, чтобы открыть карточку ученика: слабые места, трудные слова и отчёт для родителей.' }),
         stats.length
           ? h('div', { class: 'table-wrap' }, h('table', { class: 'tbl' },
               h('thead', {}, h('tr', {}, ['Класс', 'Ученик', 'Ник', 'Код', 'Последний вход', 'Очки за неделю', 'Ответов за неделю', 'Всего ответов', 'Верно', 'Чаще решает', ''].map(t => h('th', { text: t })))),
               h('tbody', {}, stats.map(r => h('tr', {},
                 h('td', { text: r.grade }),
-                h('td', { text: `${r.last_name} ${r.first_name}` }),
+                h('td', {}, h('button', { class: 'linkbtn', type: 'button', text: `${r.last_name} ${r.first_name}`, onclick: () => go('stu-' + r.code) })),
                 h('td', { text: r.nickname }),
                 h('td', { class: 'mono', text: r.code }),
                 h('td', { text: fmtDate(r.last_seen) }),
@@ -777,14 +1096,154 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     );
   }
 
+  /* ---------- Карточка ученика и отчёт для родителей ---------- */
+  const cardText = key => {
+    const k = String(key);
+    if (k.startsWith('w:')) return k.slice(2).split('|')[0];
+    const [q, a] = k.slice(2).split('|');
+    return a ? `${a} — «${q.length > 70 ? q.slice(0, 70) + '…' : q}»` : q;
+  };
+  const pctOf = (c, n) => (Number(n) ? Math.round(Number(c) / Number(n) * 100) : 0);
+  const fmtDay = d => new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+
+  function buildReport(data) {
+    const l = data.learner;
+    const ws = new Date(data.week_start);
+    const we = new Date(ws.getTime() + 6 * 86400000);
+    const w = data.week;
+    const mods = Object.entries(data.week_modules || {}).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${modName(m)} — ${n}`);
+    const weak = (data.parts || []).filter(p => p.answers >= 5).map(p => ({ ...p, pct: pctOf(p.correct, p.answers) }))
+      .filter(p => p.pct < 80).sort((a, b) => a.pct - b.pct).slice(0, 4).map(p => `${modName(p.module)}, «${p.part}» (${p.pct}% верно)`);
+    const hardWords = (data.hard || []).slice(0, 6).map(x => cardText(x.card_key).split(' — ')[0]);
+    const lines = [
+      'Отчёт о занятиях в тренажёре «нарешка»',
+      `Ученик: ${l.last_name} ${l.first_name}, ${/^\d+$/.test(l.grade) ? l.grade + ' класс' : l.grade}`,
+      `Неделя: ${fmtDay(ws)} — ${fmtDay(we)}`,
+      `Занимался(ась) дней: ${w.days} из 7`,
+      `Решено карточек: ${w.answers}, верно с первой попытки: ${pctOf(w.correct, w.answers)}%`
+    ];
+    if (mods.length) lines.push('Темы недели: ' + mods.join('; '));
+    if (weak.length) lines.push('Над чем стоит поработать: ' + weak.join('; '));
+    if (hardWords.length) lines.push('Трудные слова: ' + hardWords.join(', '));
+    lines.push(`Преподаватель: ${TEACHER}`);
+    return lines.join('\n');
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); toast('Отчёт скопирован — вставьте его в мессенджер'); return; } catch (x) { /* покажем текст */ }
+    const area = h('textarea', { id: 'report-text', readonly: true, 'aria-label': 'Отчёт' });
+    area.value = text;
+    openModal(h('div', { class: 'dlg' },
+      h('h2', { id: 'modal-title', text: 'Отчёт для родителей' }),
+      h('p', { class: 'dlg-sub', text: 'Скопировать автоматически не получилось. Выделите текст и скопируйте его.' }),
+      area,
+      h('div', { class: 'dlg-actions' }, h('button', { class: 'btn primary', type: 'button', text: 'Закрыть', onclick: closeModal }))
+    ));
+    area.focus();
+    area.select();
+  }
+
+  async function renderTeacherStudent(code) {
+    if (!teacherToken) { renderTeacherLogin(); return; }
+    const body = h('div', { class: 'teacher-body' }, h('p', { class: 'empty', text: 'Загружаем…' }));
+    app.replaceChildren(
+      h('header', { class: 'page-head' },
+        h('button', { class: 'btn', type: 'button', text: '← Все ученики', onclick: () => go('teacher') })
+      ),
+      body
+    );
+    let data;
+    try { data = await rpc('teacher_student', { p_code: code }, teacherToken); } catch (x) {
+      if (x.status === 401 || /JWT|expired/.test(x.message)) { teacherToken = null; renderTeacherLogin('Сессия истекла, войдите снова.'); return; }
+      body.replaceChildren(h('p', { class: 'empty', text: 'Не удалось загрузить: ' + x.message }));
+      return;
+    }
+    const l = data.learner;
+    const w = data.week;
+    const parts = (data.parts || []).map(p => ({ ...p, pct: pctOf(p.correct, p.answers) }));
+    const weak = parts.filter(p => p.answers >= 5).sort((a, b) => a.pct - b.pct).slice(0, 10);
+    const dayCells = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = dateKey(d);
+      const n = Number((data.days || {})[k] || 0);
+      dayCells.push(h('span', { class: 'day-cell lvl' + (n === 0 ? 0 : n < 10 ? 1 : n < 30 ? 2 : 3), title: `${fmtDay(d)}: ${n} ответов` }));
+    }
+    const partTable = rows => h('div', { class: 'table-wrap' }, h('table', { class: 'tbl' },
+      h('thead', {}, h('tr', {}, ['Задание', 'Раздел', 'Ответов', 'Верно'].map(t => h('th', { text: t })))),
+      h('tbody', {}, rows.map(p => h('tr', { class: p.pct < 60 ? 'bad-row' : '' },
+        h('td', { text: modName(p.module) }), h('td', { text: p.part || '—' }),
+        h('td', { class: 'num', text: p.answers }), h('td', { class: 'num', text: p.pct + '%' })
+      )))
+    ));
+    body.replaceChildren(
+      h('h1', { class: 'page-title', text: `${l.last_name} ${l.first_name}` }),
+      h('p', { class: 'lede', text: `${/^\d+$/.test(l.grade) ? l.grade + ' класс' : l.grade} · ник «${l.nickname}» · код ${l.code} · зарегистрирован ${fmtDay(l.created_at)}` }),
+      (l.badges || []).length ? h('p', { class: 'who-badges big', text: l.badges.map(iconOf).join(' ') }) : '',
+      h('div', { class: 'userbar' },
+        h('button', { class: 'btn primary', type: 'button', text: '📋 Скопировать отчёт для родителей', onclick: () => copyText(buildReport(data)) })
+      ),
+      h('section', { class: 'teacher-sec' },
+        h('h2', { text: 'Эта неделя' }),
+        h('div', { class: 'stat-row' },
+          h('div', { class: 'stat' }, h('b', { text: w.days }), h('span', { text: 'дней из 7' })),
+          h('div', { class: 'stat' }, h('b', { text: w.answers }), h('span', { text: 'ответов' })),
+          h('div', { class: 'stat' }, h('b', { text: pctOf(w.correct, w.answers) + '%' }), h('span', { text: 'верно' }))
+        ),
+        h('p', { class: 'pick-hint', text: 'Активность за 30 дней (чем темнее, тем больше ответов):' }),
+        h('div', { class: 'day-cells' }, dayCells)
+      ),
+      h('section', { class: 'teacher-sec' },
+        h('h2', { text: 'Слабые места' }),
+        h('p', { class: 'pick-hint', text: 'Разделы, где ученик ответил хотя бы 5 раз, начиная с самого низкого процента верных.' }),
+        weak.length ? partTable(weak) : h('p', { class: 'empty', text: 'Пока мало ответов, чтобы делать выводы.' })
+      ),
+      h('section', { class: 'teacher-sec' },
+        h('h2', { text: 'Где ошибается' }),
+        (data.hard || []).length
+          ? h('div', { class: 'table-wrap' }, h('table', { class: 'tbl' },
+              h('thead', {}, h('tr', {}, ['Задание', 'Карточка', 'Ошибок', 'Всего'].map(t => h('th', { text: t })))),
+              h('tbody', {}, data.hard.map(x => h('tr', {},
+                h('td', { text: modName(x.module) }), h('td', { text: cardText(x.card_key) }),
+                h('td', { class: 'num', text: x.wrong }), h('td', { class: 'num', text: x.total })
+              )))
+            ))
+          : h('p', { class: 'empty', text: 'Ошибок нет.' })
+      ),
+      h('section', { class: 'teacher-sec' },
+        h('h2', { text: 'Все разделы' }),
+        parts.length ? partTable(parts) : h('p', { class: 'empty', text: 'Ученик ещё ничего не решал.' })
+      )
+    );
+  }
+
   /* ---------- Маршруты и первый запуск ---------- */
   window.extraRoute = hash => {
     if (hash === 'rating') { renderRating(); return true; }
     if (hash === 'teacher') { renderTeacher(); return true; }
+    const stu = hash.match(/^stu-(\d{4}-\d{4})$/);
+    if (stu) { renderTeacherStudent(stu[1]); return true; }
+    if (hash === 'mistakes') {
+      const items = mistakeItems();
+      if (!items.length) { toast('Ошибок для повторения нет'); return false; }
+      virtualSession('Мои ошибки', items);
+      return true;
+    }
+    if (hash === 'daycard') {
+      const dc = dayCard();
+      if (!dc) return false;
+      virtualSession('Карточка дня', [dc]);
+      return true;
+    }
     return false;
   };
 
   window.afterStart = () => {
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* без офлайна */ });
+    }
+    window.addEventListener('online', () => flushTrack());
+    loadServerStats();
     if (!me && !lsGet(ASKED_KEY) && !location.hash) welcome();
     if (me) {
       rpc('login', { p_code: me.code }).then(rows => {
@@ -1397,6 +1856,7 @@ function tile(mod) {
       h('span', { class: 'chip', text: mod.num ? `Задание ${mod.num}` : 'Тренировка' }),
       h('span', { class: 'count', text: cardsWord(n) })
     ),
+    window.tileExtra ? window.tileExtra(mod) : '',
     h('div', { class: 'tile-body' },
       h('h2', { text: mod.title }),
       h('p', { class: 'tile-desc', text: n ? (mod.desc || (mod.type === 'accent' ? 'Слова с ударением' : 'Вопросы с вариантами')) : 'Карточки скоро появятся.' })
@@ -1636,8 +2096,8 @@ function startSession(mod, partId) {
   showCard();
 }
 
-const sessionBack = () => (partsOf(session.mod).length > 1 ? 'task-' + session.mod.id : backOf(session.mod));
-const sessionTitle = () => moduleName(session.mod) + (session.partName ? ' · ' + session.partName : '');
+const sessionBack = () => (session.mod.virtual ? '' : partsOf(session.mod).length > 1 ? 'task-' + session.mod.id : backOf(session.mod));
+const sessionTitle = () => (session.mod.virtual ? session.mod.title : moduleName(session.mod)) + (session.partName ? ' · ' + session.partName : '');
 
 const percent = () => Math.round(session.mastered.size / session.total * 100);
 
