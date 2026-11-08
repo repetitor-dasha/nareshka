@@ -240,6 +240,7 @@ button, textarea, input { font: inherit; color: inherit; }
 .result-actions .primary { flex: 1 1 220px; }
 
 /* Окна */
+.hcard .joke { font-size: 14px; color: var(--muted); }
 dialog {
   width: min(600px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
   padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
@@ -541,7 +542,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       item('Что такое личный код', 'После регистрации вы получаете код из 8 цифр, например 4821-7356. Он заменяет логин и пароль. На этом устройстве сайт запомнит вас сам, а код нужен, чтобы войти с другого телефона или компьютера.'),
       item('Как войти с другого устройства', 'Нажмите «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду» и введите свой код. Забыли код — посмотрите его на старом устройстве (кнопка с вашим ником на главной) или спросите у преподавателя.'),
       item('Как получить очки', 'Решайте карточки. Очко даётся за карточку, решённую верно с первой попытки. В течение недели каждая карточка приносит очко один раз, а в понедельник недельный рейтинг начинается заново.'),
-      item('Мои ошибки', 'Карточки, где вы ошиблись с первой попытки, попадают в список «Повторить мои ошибки» на главной. Когда ответите на карточку верно с первой попытки, она уйдёт из списка.'),
+      item('Мои ошибки', 'Карточки, где вы ошиблись с первой попытки, попадают в «Повторить мои ошибки» на главной. Ответили верно — карточка вернётся ещё раз через 1, 3, 7 и 14 дней: так слово запоминается надолго, а не до завтра. После четырёх верных повторений карточка считается выученной. Ошиблись снова — отсчёт начнётся заново.'),
       item('Серия дней', `День засчитывается, если вы решили хотя бы ${DAY_MIN} карточек. Занимайтесь каждый день, чтобы серия росла. Пропустили день — серия начнётся заново.`),
       item('Значки и прогресс', 'Значки даются за серии, количество карточек и за полностью выученные темы. Их видно в «Достижениях», а у зарегистрированных — ещё и рядом с ником в рейтинге. Полоска на плитке показывает, какая доля карточек темы уже решена верно.'),
       item('Как поставить на телефон', 'Android (Chrome): меню ⋮ → «Установить приложение» или «Добавить на главный экран». iPhone (Safari): кнопка «Поделиться» → «На экран «Домой»». Сайт откроется как приложение и будет работать даже без интернета, а ответы отправятся, когда сеть появится.'),
@@ -741,8 +742,12 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   const FLAGS_KEY = 'nareshka-flags';
   const BADGES_SENT_KEY = 'nareshka-badges-sent';
   const DAY_MIN = 10; // день засчитывается в серию после 10 карточек
+  const REVIEW_DAYS = [1, 3, 7, 14]; // интервальное повторение ошибок: через сколько дней вернуть карточку
   let progress = lsGet(PROG_KEY) || {}; // { модуль: [ключи карточек, решённых верно с первой попытки] }
-  let mistakes = lsGet(MIST_KEY) || {}; // { ключ карточки: { m: модуль, t: время } }
+  let mistakes = lsGet(MIST_KEY) || {}; // { ключ карточки: { m: модуль, t: время ошибки, s: шаг повторения, d: когда повторить } }
+  const dueOf = e => (e.d == null ? e.t || 0 : e.d);
+  // Начало дня через n дней: карточка появится с утра, а не ровно через 24 часа.
+  const dayStart = n => { const x = new Date(); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() + n); return x.getTime(); };
   let days = lsGet(DAYS_KEY) || {};     // { 'ГГГГ-ММ-ДД': сколько ответов }
   let flags = lsGet(FLAGS_KEY) || {};   // { night, early }
   let server = null;                    // статистика с сервера (для зарегистрированных)
@@ -760,9 +765,16 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     if (first && ok) {
       const set = progSet(mod.id);
       if (!set.has(key)) { set.add(key); progress[mod.id] = [...set]; lsSet(PROG_KEY, progress); }
-      if (mistakes[key]) { delete mistakes[key]; lsSet(MIST_KEY, mistakes); }
+      const e = mistakes[key];
+      if (e && dueOf(e) <= Date.now()) {
+        // Верно в срок: следующий шаг интервального повторения, после последнего — выучено.
+        e.s = (e.s || 0) + 1;
+        if (e.s > REVIEW_DAYS.length) delete mistakes[key];
+        else e.d = dayStart(REVIEW_DAYS[e.s - 1]);
+        lsSet(MIST_KEY, mistakes);
+      }
     } else if (first) {
-      mistakes[key] = { m: mod.id, t: Date.now() };
+      mistakes[key] = { m: mod.id, t: Date.now(), s: 0, d: Date.now() };
       lsSet(MIST_KEY, mistakes);
     }
     const now = new Date();
@@ -827,16 +839,30 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     return idx;
   }
 
+  // Ошибки, которые пора повторить сегодня.
   function mistakeItems() {
     const idx = cardIndex();
+    const now = Date.now();
     const out = [];
     for (const [k, v] of Object.entries(mistakes)) {
+      if (dueOf(v) > now) continue;
       const hit = idx.get(k);
       if (!hit) continue;
       const mod = state.modules.find(m => m.id === v.m) || hit.mod;
       out.push({ card: hit.card, mod });
     }
     return out;
+  }
+
+  // Ошибки, которые ждут повторения позже: сколько и когда ближайшее.
+  function laterReviews() {
+    const now = Date.now();
+    const later = Object.values(mistakes).filter(v => dueOf(v) > now);
+    if (!later.length) return null;
+    const next = Math.min(...later.map(dueOf));
+    const days = Math.round((next - dayStart(0)) / 86400000);
+    const when = days <= 1 ? 'завтра' : days === 2 ? 'послезавтра' : `через ${days} ${plural(days, 'день', 'дня', 'дней')}`;
+    return { n: later.length, when };
   }
 
   function virtualSession(title, items) {
@@ -962,9 +988,38 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   let installEvent = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; if (!session && !location.hash) route(); });
 
+  // Шутливые подписки к серии: одна на день, меняется каждый день.
+  const JOKES = {
+    risk: [
+      'Серия смотрит на вас глазами кота из «Шрека». Не бросайте её.',
+      'Огонёк серии тускнеет. Подкиньте ему пару карточек.',
+      'Если серия сгорит, «ложить» победит. Вы же этого не допустите?',
+      'Десять карточек — это быстрее, чем выбрать трек в плейлисте.',
+      'Серия просила передать: «Я верю в тебя, но не бесконечно».',
+      'Где-то грустит одна непроверяемая гласная. Зайдите её проведать.',
+      'Паронимы уже соскучились. И даже немного обиделись (не обидчиво).'
+    ],
+    start: [
+      'Начните серию сегодня — завтра будет приятно не начинать с нуля.',
+      'Десять карточек — и у вас появится огонёк. Маленький, но свой.',
+      'ЕГЭ не сдастся сам. А вот карточки — сдаются легко.',
+      'Пять минут сейчас — минус пять баллов тревоги на экзамене.',
+      'Кто решил десять карточек, тот молодец. Это научный факт.'
+    ],
+    done: [
+      'Серия довольна и мурчит. Завтра — снова сюда.',
+      'Огонёк горит. Можно ещё пару карточек — для красоты.',
+      'Сегодня вы сильнее ударения в слове «звонИт».',
+      'Норма выполнена. Ошибки дрожат и ждут повторения.',
+      'Отличная работа! Русский язык одобрительно кивает.'
+    ]
+  };
+  const jokeOf = list => list[Math.floor(dayStart(0) / 86400000) % list.length];
+
   window.homeExtras = () => {
     const st = streakInfo();
     const mist = mistakeItems();
+    const later = laterReviews();
     const dc = dayCard();
     const left = Math.max(0, DAY_MIN - st.todayCount);
     let dcText = '';
@@ -990,15 +1045,20 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
           h('b', { text: st.n ? `🔥 ${st.n} ${plural(st.n, 'день', 'дня', 'дней')} подряд` : '🔥 Серия дней' }),
           h('span', { text: st.doneToday
             ? 'Сегодня вы уже позанимались. Так держать!'
-            : `Решите сегодня ещё ${left} ${plural(left, 'карточку', 'карточки', 'карточек')}, чтобы ${st.n ? 'не потерять серию' : 'начать серию'}.` })
+            : `Решите сегодня ещё ${left} ${plural(left, 'карточку', 'карточки', 'карточек')}, чтобы ${st.n ? 'не потерять серию' : 'начать серию'}.` }),
+          h('i', { class: 'joke', text: jokeOf(st.doneToday ? JOKES.done : st.n ? JOKES.risk : JOKES.start) })
         ),
         mist.length
           ? h('button', { class: 'hcard action', type: 'button', onclick: () => go('mistakes') },
               h('b', { text: `🔁 Повторить мои ошибки (${mist.length})` }),
-              h('span', { text: 'Карточки, где вы ошиблись. Ответите верно с первой попытки — карточка уйдёт из списка.' }))
-          : h('div', { class: 'hcard' },
-              h('b', { text: '🔁 Мои ошибки' }),
-              h('span', { text: 'Здесь появятся карточки, где вы ошиблись, чтобы их повторить.' })),
+              h('span', { text: 'Карточки, где вы ошиблись или которые пора повторить. Ответите верно — карточка вернётся через 1, 3, 7 и 14 дней, чтобы запомниться надолго.' }))
+          : later
+            ? h('div', { class: 'hcard done' },
+                h('b', { text: '🔁 Ошибки на сегодня повторены' }),
+                h('span', { text: `Ещё ${cardsWord(later.n)} ждут повторения. Ближайшее — ${later.when}.` }))
+            : h('div', { class: 'hcard' },
+                h('b', { text: '🔁 Мои ошибки' }),
+                h('span', { text: 'Здесь появятся карточки, где вы ошиблись. Они будут возвращаться на повторение через 1, 3, 7 и 14 дней.' })),
         dc && h('button', { class: 'hcard action', type: 'button', onclick: () => go('daycard') },
           h('b', { text: '⭐ Карточка дня' }),
           h('span', { text: dcText }))
