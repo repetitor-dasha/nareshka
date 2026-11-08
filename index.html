@@ -245,6 +245,28 @@ dialog {
   padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); color: var(--fg); box-shadow: var(--shadow);
 }
+.card-tools { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.rule-btn.quiet { color: var(--muted); }
+.hcard.tutor { border-color: var(--ok); }
+@media (hover: hover) { .hcard.tutor:hover { background: var(--ok-soft); } }
+.tutor-foot { order: 10; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding-top: 14px; border-top: 1px solid var(--line); font-size: 15px; }
+.tutor-foot .soc { color: var(--muted); text-decoration: none; font-weight: 500; }
+@media (hover: hover) { .tutor-foot .soc:hover { color: var(--accent); } }
+.contacts { display: flex; flex-direction: column; gap: 8px; }
+.contact { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 52px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--fg); text-decoration: none; }
+@media (hover: hover) { .contact:hover { border-color: var(--accent); background: var(--accent-soft); } }
+.contact-icon { font-size: 22px; width: 28px; text-align: center; flex: none; }
+.contact-text { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.contact-text small { color: var(--muted); }
+.contact-go { color: var(--accent); font-weight: 700; }
+textarea.msg { width: 100%; padding: 10px 12px; font: inherit; font-size: 15px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; resize: vertical; }
+.about { display: flex; flex-direction: column; gap: 16px; max-width: 680px; }
+.about-head { display: flex; gap: 16px; align-items: center; }
+.about-photo { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; flex: none; border: 3px solid var(--accent-soft); }
+.about-name { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.2; }
+.about-facts { display: flex; flex-direction: column; gap: 6px; padding-left: 20px; font-weight: 600; }
+.about-p { line-height: 1.6; }
+.about-h { font-size: 20px; margin-top: 8px; }
 .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .rule-btn { min-height: 32px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 @media (hover: hover) { .rule-btn:hover { background: var(--accent-soft); } }
@@ -658,17 +680,45 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       h('p', { class: 'dlg-sub', text: 'Введите его на другом устройстве: «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду».' }),
       h('button', { class: 'btn', type: 'button', text: '🏅 Мои достижения', onclick: achievements }),
       h('div', { class: 'dlg-actions' },
-        h('button', { class: 'btn quiet', type: 'button', text: 'Выйти на этом устройстве', onclick: () => {
-          flushTrack();
-          saveMe(null);
-          closeModal();
-          route();
-          toast('Вы вышли. Чтобы вернуться, войдите по коду.');
-        } }),
+        h('button', { class: 'btn quiet', type: 'button', text: 'Выйти', onclick: confirmLogout }),
         h('button', { class: 'btn primary', type: 'button', text: 'Закрыть', onclick: closeModal })
       )
     ));
   }
+
+  // Выход только после подтверждения: показываем код и просим отметить, что он сохранён.
+  function confirmLogout() {
+    if (!me) return;
+    const code = me.code;
+    const sure = h('input', { type: 'checkbox', id: 'logout-sure', onchange: () => { out.disabled = !sure.checked; } });
+    const out = h('button', { class: 'btn danger', type: 'button', disabled: true, text: 'Выйти', onclick: async () => {
+      await flushTrack();
+      saveMe(null);
+      closeModal();
+      route();
+      toast('Вы вышли. Чтобы вернуться, войдите по коду.');
+    } });
+    openModal(h('div', { class: 'dlg' },
+      h('h2', { id: 'modal-title', text: 'Точно выйти?' }),
+      h('p', { class: 'dlg-sub', text: 'Вернуться можно только по личному коду. Без него ваши очки, рейтинг и достижения останутся в базе, но войти в этот профиль уже не получится.' }),
+      h('p', { text: 'Ваш код:' }),
+      h('p', { class: 'big-code', text: code }),
+      h('div', { class: 'userbar' },
+        h('button', { class: 'btn', type: 'button', text: '📋 Скопировать код', onclick: async () => {
+          try { await navigator.clipboard.writeText(code); toast('Код скопирован'); } catch (x) { toast('Не получилось скопировать — запишите код вручную'); }
+        } })
+      ),
+      h('p', { class: 'privacy', text: me.kind === 'student'
+        ? 'Совет: сфотографируйте экран с кодом. Если код потеряется, его подскажет Дарья Александровна.'
+        : 'Совет: сфотографируйте экран с кодом. Восстановить код без него не получится.' }),
+      h('label', { class: 'rule-off', for: 'logout-sure' }, sure, h('span', { text: 'Я записал(а) или сохранил(а) свой код' })),
+      h('div', { class: 'dlg-actions' },
+        out,
+        h('button', { class: 'btn primary', type: 'button', text: 'Остаться', onclick: closeModal })
+      )
+    ));
+  }
+  window.confirmLogout = confirmLogout;
 
   function saveMe(v) {
     me = v;
@@ -1951,6 +2001,161 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     try { return whyNot(q, card, choice, picked); } catch (e) { return null; }
   };
   window.__learn = { THEORY, theoryFor, whyNot, gapReason };
+})();
+
+/* ---------- Репетитор: контакты, пробный урок, «Нашли ошибку», страница «О репетиторе» ---------- */
+(function () {
+  // Заполните ссылки. Пустые строки не показываются на сайте.
+  const TUTOR = {
+    name: 'Дарья Александровна Горева',
+    short: 'Дарья Александровна',
+    withName: 'Дарьей Александровной',  // «заниматься с …»
+    toName: 'Дарье Александровне',       // «написать …»
+    photo: '',            // имя файла фото рядом с index.html, например 'daria.jpg'
+    telegram: '',         // ссылка https://t.me/имя
+    vk: '',               // ссылка на сообщество ВК
+    vkMessage: '',        // ссылка «написать сообществу»: https://vk.me/имя_сообщества
+    tiktok: '',           // https://www.tiktok.com/@имя
+    instagram: '',        // https://www.instagram.com/имя
+    email: '',            // адрес почты
+    trialLink: '',        // куда вести кнопку «Пробный урок» (если пусто — Telegram или сообщения ВК)
+    about: {
+      lead: '',           // одна-две фразы под заголовком
+      paragraphs: [],     // абзацы о себе
+      facts: [],          // короткие факты: «Опыт 5 лет», «Средний балл учеников — 85»
+      price: ''           // формат и стоимость занятий (по желанию)
+    }
+  };
+
+  const messengers = () => [
+    TUTOR.telegram && { icon: '✈️', name: 'Telegram', href: TUTOR.telegram },
+    (TUTOR.vkMessage || TUTOR.vk) && { icon: '💬', name: 'Сообщения ВКонтакте', href: TUTOR.vkMessage || TUTOR.vk },
+    TUTOR.email && { icon: '✉️', name: 'Почта', href: 'mailto:' + TUTOR.email, text: TUTOR.email }
+  ].filter(Boolean);
+  const socials = () => [
+    TUTOR.vk && { icon: '👥', name: 'Сообщество ВКонтакте', href: TUTOR.vk },
+    TUTOR.telegram && { icon: '✈️', name: 'Telegram', href: TUTOR.telegram },
+    TUTOR.tiktok && { icon: '🎵', name: 'TikTok', href: TUTOR.tiktok },
+    TUTOR.instagram && { icon: '📸', name: 'Instagram', href: TUTOR.instagram },
+    TUTOR.email && { icon: '✉️', name: 'Почта', href: 'mailto:' + TUTOR.email, text: TUTOR.email }
+  ].filter(Boolean);
+  const hasAbout = () => TUTOR.about.paragraphs.length > 0 || !!TUTOR.about.lead;
+  const enabled = () => messengers().length > 0;
+
+  const linkRow = (x, body) => h('a', {
+    class: 'contact', href: x.href.startsWith('mailto:') && body ? x.href + '?subject=' + encodeURIComponent('нарешка') + '&body=' + encodeURIComponent(body) : x.href,
+    target: x.href.startsWith('mailto:') ? null : '_blank', rel: 'noopener'
+  },
+    h('span', { class: 'contact-icon', 'aria-hidden': 'true', text: x.icon }),
+    h('span', { class: 'contact-text' }, h('b', { text: x.name }), x.text && h('small', { text: x.text })),
+    h('span', { class: 'contact-go', 'aria-hidden': 'true', text: '→' })
+  );
+
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { return false; }
+  }
+
+  // Окно «написать»: готовый текст копируется, дальше — выбор канала.
+  function writeDialog(title, sub, message) {
+    const area = h('textarea', { class: 'msg', rows: '4' });
+    area.value = message;
+    openModal(h('div', { class: 'dlg' },
+      h('h2', { id: 'modal-title', text: title }),
+      h('p', { class: 'dlg-sub', text: sub }),
+      message && area,
+      message && h('button', { class: 'btn', type: 'button', text: '📋 Скопировать текст', onclick: async () => toast(await copy(area.value) ? 'Текст скопирован — вставьте его в сообщение' : 'Скопируйте текст вручную') }),
+      h('div', { class: 'contacts' }, messengers().map(x => {
+        const a = linkRow(x, area.value);
+        a.addEventListener('click', () => { if (message) copy(area.value); });
+        return a;
+      })),
+      h('div', { class: 'dlg-actions' }, h('button', { class: 'btn primary', type: 'button', text: 'Закрыть', onclick: closeModal }))
+    ));
+  }
+
+  const trialText = () => 'Здравствуйте, Дарья Александровна! Хочу записаться на пробный урок по русскому языку. Я узнал(а) о вас из «нарешки».\nКласс: \nК какому экзамену готовлюсь: ';
+
+  function trial() {
+    if (TUTOR.trialLink) { window.open(TUTOR.trialLink, '_blank', 'noopener'); return; }
+    writeDialog('Пробный урок', `Напишите ${TUTOR.toName} в удобном месте — договоритесь о времени пробного урока. Текст сообщения уже готов: он скопируется, когда вы выберете, куда написать.`, trialText());
+  }
+
+  function writeTutor() {
+    writeDialog(`Написать ${TUTOR.toName}`, 'Выберите, куда написать.', '');
+  }
+
+  function reportCard(card) {
+    const mod = session && (session.mod.virtual ? session.mod.modOf.get(card) : session.mod);
+    const where = mod ? moduleName(mod) + (card.part ? ' · ' + card.part : '') : '';
+    const what = card.word ? card.word : card.q + ' → ' + answersOf(card).join(' / ');
+    writeDialog('Нашли ошибку?', 'Спасибо, что помогаете сделать тренажёр лучше! Допишите, что не так, и отправьте любым способом.',
+      `Ошибка в «нарешке»\n${where}\nКарточка: ${what}\nЧто не так: `);
+  }
+
+  /* ---------- Страница «О репетиторе» ---------- */
+  function renderAbout() {
+    const a = TUTOR.about;
+    app.replaceChildren(
+      h('header', { class: 'page-head' },
+        h('button', { class: 'btn', type: 'button', text: '← На главную', onclick: () => go('') }),
+        h('h1', { class: 'page-title', text: 'О репетиторе' })
+      ),
+      h('section', { class: 'about' },
+        h('div', { class: 'about-head' },
+          TUTOR.photo && h('img', { class: 'about-photo', src: TUTOR.photo, alt: TUTOR.name }),
+          h('div', {},
+            h('p', { class: 'about-name', text: TUTOR.name }),
+            h('p', { class: 'dlg-sub', text: 'Репетитор по русскому языку, подготовка к ОГЭ и ЕГЭ' })
+          )
+        ),
+        a.lead && h('p', { class: 'lede', text: a.lead }),
+        a.facts.length > 0 && h('ul', { class: 'about-facts' }, a.facts.map(f => h('li', { text: f }))),
+        a.paragraphs.map(p => h('p', { class: 'about-p', text: p })),
+        a.price && h('p', { class: 'privacy', text: a.price }),
+        enabled() && h('button', { class: 'btn primary', type: 'button', text: '📝 Записаться на пробный урок', onclick: trial }),
+        socials().length > 0 && h('h2', { class: 'about-h', text: 'Где меня найти' }),
+        socials().length > 0 && h('div', { class: 'contacts' }, socials().map(x => linkRow(x)))
+      )
+    );
+  }
+
+  /* ---------- Встраивание ---------- */
+  const baseRoute = window.extraRoute;
+  window.extraRoute = hash => {
+    if (hash === 'about' && hasAbout()) { renderAbout(); return true; }
+    return baseRoute ? baseRoute(hash) : false;
+  };
+
+  const baseHome = window.homeExtras;
+  window.homeExtras = () => {
+    const el = baseHome();
+    if (!enabled()) return el;
+    const cards = el.querySelector('.home-cards');
+    if (cards) cards.append(h('button', { class: 'hcard action tutor', type: 'button', onclick: trial },
+      h('b', { text: '👩‍🏫 Хочу заниматься с ' + TUTOR.withName }),
+      h('span', { text: 'Запишитесь на пробный урок: разберём ваши слабые места и составим план подготовки.' })
+    ));
+    el.append(h('footer', { class: 'tutor-foot' },
+      hasAbout() && h('button', { class: 'linkbtn', type: 'button', text: 'О репетиторе', onclick: () => go('about') }),
+      h('button', { class: 'linkbtn', type: 'button', text: 'Написать ' + TUTOR.toName, onclick: writeTutor }),
+      h('button', { class: 'linkbtn', type: 'button', text: 'Нашли ошибку?', onclick: () => writeDialog('Нашли ошибку?', 'Напишите, в каком задании и какой карточке ошибка. Спасибо!', 'Ошибка в «нарешке»\nЗадание: \nКарточка: \nЧто не так: ') }),
+      socials().filter(x => !x.href.startsWith('mailto:')).map(x => h('a', { class: 'soc', href: x.href, target: '_blank', rel: 'noopener', title: x.name, 'aria-label': x.name, text: x.icon + ' ' + x.name }))
+    ));
+    return el;
+  };
+
+  // Рядом с кнопкой «Правило» в карточке — «Ошибка?».
+  const baseRule = window.cardRule;
+  window.cardRule = card => {
+    const rule = baseRule ? baseRule(card) : '';
+    if (!enabled()) return rule;
+    return h('span', { class: 'card-tools' },
+      rule,
+      h('button', { class: 'rule-btn quiet', type: 'button', title: 'Нашли ошибку в карточке?', text: '⚠️ Ошибка?', onclick: () => reportCard(card) })
+    );
+  };
+
+  window.tutor = { TUTOR, trial, writeTutor, renderAbout };
 })();
 
 </script>
