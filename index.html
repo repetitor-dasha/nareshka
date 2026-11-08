@@ -273,6 +273,9 @@ pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px;
 .nick-list { display: flex; flex-direction: column; gap: 6px; }
 .nick { min-height: 44px; padding: 8px 14px; text-align: left; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); font-weight: 600; font-size: 16px; cursor: pointer; }
 .nick[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.help-item { display: flex; flex-direction: column; gap: 3px; font-size: 15px; }
+.help-item span { color: var(--muted); }
+.field-note { font-weight: 400; font-size: 13px; color: var(--muted); }
 .privacy { font-size: 14px; color: var(--muted); padding: 10px 12px; background: var(--surface-2); border-radius: 10px; }
 .form-err { color: var(--bad); font-size: 14px; min-height: 1em; }
 .big-code { font-family: var(--font-display); font-size: clamp(30px, 9vw, 42px); font-weight: 700; letter-spacing: .04em; color: var(--accent); text-align: center; font-variant-numeric: tabular-nums; }
@@ -390,6 +393,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     fill();
     const wrap = h('div', { class: 'field' },
       h('span', { text: 'Никнейм для рейтинга' }),
+      h('small', { class: 'field-note', text: 'Его увидят все в рейтинге. Выберите один из готовых или нажмите «Другие варианты».' }),
       box,
       h('button', { class: 'btn quiet', type: 'button', text: '↻ Другие варианты', onclick: fill })
     );
@@ -400,18 +404,38 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   function welcome() {
     openModal(h('div', { class: 'dlg' },
       h('h2', { id: 'modal-title', text: 'Добро пожаловать в «нарешку»!' }),
-      h('p', { class: 'dlg-sub', text: 'Выберите, как вы будете заниматься.' }),
+      h('p', { class: 'dlg-sub', text: 'Решать карточки можно в любом случае. Выберите, как вам удобнее.' }),
       h('button', { class: 'choice', type: 'button', onclick: () => studentForm() },
         h('b', { text: 'Я занимаюсь у Дарьи Александровны' }),
-        h('span', { text: 'Отметьте, чтобы ваши результаты попали в статистику репетитора.' })
+        h('span', { text: 'Нужно для чистой статистики репетитора: Дарья Александровна увидит, что и сколько вы решаете. А вы попадёте в общий рейтинг под смешным ником.' })
+      ),
+      h('button', { class: 'choice', type: 'button', onclick: () => guestForm() },
+        h('b', { text: 'Хочу в рейтинг, но без имени' }),
+        h('span', { text: 'Только никнейм, никаких имён. Ваши очки будут в общем рейтинге.' })
       ),
       h('button', { class: 'choice', type: 'button', onclick: () => { lsSet(ASKED_KEY, true); closeModal(); } },
         h('b', { text: 'Просто хочу порешать' }),
-        h('span', { text: 'Можно без регистрации. Попасть в рейтинг можно позже.' })
+        h('span', { text: 'Без регистрации. Очки никуда не записываются. Зарегистрироваться можно позже.' })
       ),
       h('div', { class: 'dlg-actions' },
-        h('button', { class: 'btn quiet', type: 'button', text: 'Только ник для рейтинга', onclick: () => guestForm() }),
-        h('button', { class: 'btn quiet', type: 'button', text: 'У меня уже есть код', onclick: () => codeLogin() })
+        h('button', { class: 'btn quiet', type: 'button', text: 'Как это работает?', onclick: () => help(welcome) }),
+        h('button', { class: 'btn quiet', type: 'button', text: 'Я уже регистрировался — войти по коду', onclick: () => codeLogin() })
+      )
+    ));
+  }
+
+  function help(back) {
+    const item = (title, text) => h('div', { class: 'help-item' }, h('b', { text: title }), h('span', { text }));
+    openModal(h('div', { class: 'dlg' },
+      h('h2', { id: 'modal-title', text: 'Как это работает' }),
+      item('Зачем регистрироваться', 'Чтобы ваши очки сохранялись и попадали в рейтинг. Ученики Дарьи Александровны регистрируются ещё и для того, чтобы она видела, что и сколько они решают.'),
+      item('Что такое никнейм', 'Это ваше имя в рейтинге. Его видят все. Мы предлагаем готовые смешные ники, чтобы никто не придумал обидный: выберите один или нажмите «Другие варианты».'),
+      item('Что видит преподаватель', `Фамилию, имя и класс видит только ${TEACHER}. Другие ученики видят только ваш ник.`),
+      item('Что такое личный код', 'После регистрации вы получаете код из 8 цифр, например 4821-7356. Он заменяет логин и пароль. На этом устройстве сайт запомнит вас сам, а код нужен, чтобы войти с другого телефона или компьютера.'),
+      item('Как войти с другого устройства', 'Нажмите «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду» и введите свой код. Забыли код — посмотрите его на старом устройстве (кнопка с вашим ником на главной) или спросите у преподавателя.'),
+      item('Как получить очки', 'Решайте карточки. Очко даётся за карточку, решённую верно с первой попытки. В течение недели каждая карточка приносит очко один раз, а в понедельник недельный рейтинг начинается заново.'),
+      h('div', { class: 'dlg-actions' },
+        h('button', { class: 'btn primary', type: 'button', text: back ? 'Понятно, назад' : 'Понятно', onclick: () => (back ? back() : closeModal()) })
       )
     ));
   }
@@ -445,6 +469,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       }
     },
       h('h2', { id: 'modal-title', text: 'Регистрация ученика' }),
+      h('p', { class: 'dlg-sub', text: 'Заполняется один раз. Пишите фамилию и имя полностью, как в журнале: так Дарья Александровна точно узнает вас в статистике.' }),
       h('label', { class: 'field', for: 'reg-last' }, 'Фамилия', last),
       h('label', { class: 'field', for: 'reg-first' }, 'Имя', first),
       h('label', { class: 'field', for: 'reg-grade' }, 'Класс', grade),
@@ -481,7 +506,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       }
     },
       h('h2', { id: 'modal-title', text: 'Участие в рейтинге' }),
-      h('p', { class: 'dlg-sub', text: 'Имя не нужно: в рейтинге будет только никнейм.' }),
+      h('p', { class: 'dlg-sub', text: 'Имя не нужно: в рейтинге будет только никнейм. После выбора вы получите личный код, чтобы входить с других устройств.' }),
       nick.el,
       err,
       h('div', { class: 'dlg-actions' },
@@ -513,6 +538,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       }
     },
       h('h2', { id: 'modal-title', text: 'Вход по коду' }),
+      h('p', { class: 'dlg-sub', text: 'Код из 8 цифр вам показали при регистрации. Его можно посмотреть на старом устройстве: кнопка с вашим ником на главной. Ученики Дарьи Александровны могут спросить код у неё.' }),
       h('label', { class: 'field', for: 'login-code' }, 'Ваш личный код', input),
       err,
       h('div', { class: 'dlg-actions' },
@@ -527,6 +553,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     openModal(h('div', { class: 'dlg' },
       h('h2', { id: 'modal-title', text: 'Ваш личный код' }),
       h('p', { class: 'big-code', text: code }),
+      h('p', { class: 'privacy', text: 'Код заменяет логин и пароль. На этом устройстве вводить его не нужно: сайт запомнил вас. Код понадобится, чтобы войти с другого телефона или компьютера.' }),
       h('p', { class: 'dlg-sub', text: kind === 'student'
         ? 'Запомните его или сфотографируйте. Код нужен, чтобы войти с другого устройства. Если забудете — спросите у преподавателя, Дарьи Александровны.'
         : 'Запомните его или сфотографируйте. Код нужен, чтобы войти с другого устройства. Если забудете, восстановить его не получится.' }),
@@ -542,6 +569,7 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       h('p', { class: 'dlg-sub', text: me.kind === 'student' ? 'Ученик Дарьи Александровны' : 'Участник рейтинга' }),
       h('p', { text: 'Ваш личный код:' }),
       h('p', { class: 'big-code', text: me.code }),
+      h('p', { class: 'dlg-sub', text: 'Введите его на другом устройстве: «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду».' }),
       h('div', { class: 'dlg-actions' },
         h('button', { class: 'btn quiet', type: 'button', text: 'Выйти на этом устройстве', onclick: () => {
           flushTrack();
@@ -594,12 +622,12 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       ? h('button', { class: 'btn', type: 'button', onclick: profile }, '👤 ', me.nickname)
       : h('button', { class: 'btn', type: 'button', text: 'Войти или зарегистрироваться', onclick: welcome }),
     h('button', { class: 'btn', type: 'button', text: '🏆 Рейтинг', onclick: () => go('rating') }),
+    h('button', { class: 'btn quiet', type: 'button', text: 'Как это работает?', onclick: () => help() }),
     h('button', { class: 'btn quiet', type: 'button', text: 'Вход для преподавателя', onclick: () => go('teacher') })
   );
 
   /* ---------- Рейтинг ---------- */
   let ratingScope = 'week';
-  let ratingWho = 'students';
 
   async function renderRating() {
     const list = h('div', { class: 'rating-list', 'aria-live': 'polite' }, h('p', { class: 'empty', text: 'Загружаем…' }));
@@ -608,22 +636,18 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       h('header', { class: 'page-head' },
         h('button', { class: 'btn', type: 'button', text: '← На главную', onclick: () => go('') }),
         h('h1', { class: 'page-title', text: 'Рейтинг' }),
-        h('p', { class: 'lede', text: 'Очко — карточка, решённая верно с первой попытки. За неделю каждая карточка считается один раз, в понедельник недельный рейтинг начинается заново.' })
+        h('p', { class: 'lede', text: 'Как получить очки: решайте карточки. Очко даётся за карточку, решённую верно с первой попытки. За неделю каждая карточка приносит очко один раз, а в понедельник недельный рейтинг начинается заново: у всех снова равные шансы.' })
       ),
       h('div', { class: 'tabs' },
         tab('За неделю', ratingScope === 'week', () => { ratingScope = 'week'; renderRating(); }),
         tab('За всё время', ratingScope === 'all', () => { ratingScope = 'all'; renderRating(); })
       ),
-      h('div', { class: 'tabs' },
-        tab('Ученики Дарьи', ratingWho === 'students', () => { ratingWho = 'students'; renderRating(); }),
-        tab('Все', ratingWho === 'all', () => { ratingWho = 'all'; renderRating(); })
-      ),
-      !me && h('p', { class: 'pick-hint' }, 'Хотите в рейтинг? ', h('button', { class: 'linkbtn', type: 'button', text: 'Выберите никнейм', onclick: guestForm }), ' или ', h('button', { class: 'linkbtn', type: 'button', text: 'войдите по коду', onclick: codeLogin })),
+      !me && h('p', { class: 'pick-hint' }, 'Чтобы попасть в рейтинг, нужен никнейм. ', h('button', { class: 'linkbtn', type: 'button', text: 'Зарегистрироваться', onclick: welcome }), ' или ', h('button', { class: 'linkbtn', type: 'button', text: 'войти по коду', onclick: codeLogin })),
       list
     );
     await flushTrack();
     try {
-      const rows = await rpc('leaderboard', { p_scope: ratingScope, p_students_only: ratingWho === 'students' });
+      const rows = await rpc('leaderboard', { p_scope: ratingScope, p_students_only: false });
       if (!rows.length) { list.replaceChildren(h('p', { class: 'empty', text: 'Пока никто не набрал очков. Начните первым!' })); return; }
       list.replaceChildren(h('ol', { class: 'rating' }, rows.map((r, i) => h('li', { class: me && r.nickname === me.nickname ? 'mine' : '' },
         h('span', { class: 'place', text: i < 3 ? ['🥇', '🥈', '🥉'][i] : String(i + 1) }),
