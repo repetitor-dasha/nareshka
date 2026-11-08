@@ -683,11 +683,50 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
       h('p', { class: 'big-code', text: me.code }),
       h('p', { class: 'dlg-sub', text: 'Введите его на другом устройстве: «Войти или зарегистрироваться» → «Я уже регистрировался — войти по коду».' }),
       h('button', { class: 'btn', type: 'button', text: '🏅 Мои достижения', onclick: achievements }),
+      TG_BOT && h('button', { class: 'btn', type: 'button', text: '🔔 Напоминания в Telegram', onclick: tgDialog }),
       h('div', { class: 'dlg-actions' },
         h('button', { class: 'btn quiet', type: 'button', text: 'Выйти', onclick: confirmLogout }),
         h('button', { class: 'btn primary', type: 'button', text: 'Закрыть', onclick: closeModal })
       )
     ));
+  }
+
+  /* ---------- Напоминания в Telegram ---------- */
+  const TG_BOT = ''; // имя бота без @, например 'nareshka_bot'
+  const TG_KEY = 'nareshka-tg-on';
+
+  async function tgDialog() {
+    if (!me) { welcome(); return; }
+    const body = h('div', { class: 'dlg-body' }, h('p', { class: 'dlg-sub', text: 'Проверяем…' }));
+    openModal(h('div', { class: 'dlg' },
+      h('h2', { id: 'modal-title', text: '🔔 Напоминания в Telegram' }),
+      body,
+      h('div', { class: 'dlg-actions' }, h('button', { class: 'btn primary', type: 'button', text: 'Закрыть', onclick: () => { closeModal(); route(); } }))
+    ));
+    try {
+      const on = await rpc('tg_status', { p_code: me.code });
+      lsSet(TG_KEY, !!on);
+      if (on) {
+        body.replaceChildren(
+          h('p', { class: 'verdict ok', text: 'Подключены ✅' }),
+          h('p', { class: 'dlg-sub', text: 'Если вечером вы ещё не решили 10 карточек, бот напишет в 18:00 по Москве. В Telegram можно выключить командой /stop.' }),
+          h('button', { class: 'btn', type: 'button', text: 'Выключить напоминания', onclick: async () => {
+            try { await rpc('tg_off', { p_code: me.code }); lsSet(TG_KEY, false); toast('Напоминания выключены'); closeModal(); route(); }
+            catch (x) { toast('Не получилось: ' + x.message); }
+          } })
+        );
+      } else {
+        const token = await rpc('tg_link_start', { p_code: me.code });
+        body.replaceChildren(
+          h('p', { text: 'Бот «нарешки» напомнит о карточках, если вечером вы ещё не позанимались. Иногда смешно, всегда по делу — серия не сгорит 🔥' }),
+          h('p', { class: 'dlg-sub', text: 'Нажмите кнопку, откроется Telegram. Там нажмите «Запустить» (или «Start»), и бот ответит, что всё подключено.' }),
+          h('a', { class: 'btn primary', href: `https://t.me/${TG_BOT}?start=${token}`, target: '_blank', rel: 'noopener', text: '✈️ Подключить в Telegram',
+            onclick: () => setTimeout(() => toast('После «Запустить» в Telegram вернитесь сюда'), 300) })
+        );
+      }
+    } catch (x) {
+      body.replaceChildren(h('p', { class: 'form-err', text: 'Нет связи с сервером. Попробуйте позже.' }));
+    }
   }
 
   // Выход только после подтверждения: показываем код и просим отметить, что он сохранён.
@@ -1059,6 +1098,11 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
             : h('div', { class: 'hcard' },
                 h('b', { text: '🔁 Мои ошибки' }),
                 h('span', { text: 'Здесь появятся карточки, где вы ошиблись. Они будут возвращаться на повторение через 1, 3, 7 и 14 дней.' })),
+        TG_BOT && !(me && lsGet(TG_KEY)) && h('button', { class: 'hcard action', type: 'button', onclick: tgDialog },
+          h('b', { text: '🔔 Напоминания в Telegram' }),
+          h('span', { text: me
+            ? 'Бот напишет вечером, если вы ещё не позанимались, — чтобы серия не сгорела. Иногда смешно 😄'
+            : 'Зарегистрируйтесь, и бот будет напоминать о карточках, чтобы серия не сгорела.' })),
         dc && h('button', { class: 'hcard action', type: 'button', onclick: () => go('daycard') },
           h('b', { text: '⭐ Карточка дня' }),
           h('span', { text: dcText }))
