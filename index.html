@@ -96,6 +96,8 @@ button, textarea, input { font: inherit; color: inherit; }
 .masthead { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
 .brand { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.15; letter-spacing: -.01em; }
 .brand span { color: var(--accent); }
+.mini-prog .progress { display: block; min-width: 90px; }
+.part-name .mini-prog { width: min(100%, 280px); margin-top: 4px; }
 .lede { color: var(--muted); max-width: 60ch; }
 .banner { padding: 12px 14px; border-radius: 10px; background: var(--bad-soft); color: var(--fg); font-size: 15px; }
 
@@ -240,6 +242,15 @@ button, textarea, input { font: inherit; color: inherit; }
 .result-actions .primary { flex: 1 1 220px; }
 
 /* Окна */
+.mini-prog { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 320px; }
+.mini-prog .progress { flex: 1; height: 6px; margin: 0; }
+.mini-prog .count { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.mini-prog.full .count { color: var(--ok); font-weight: 600; }
+.mini-prog.full .progress i { background: var(--ok); }
+.plaque .mini-prog { margin-top: 6px; }
+.part.all.rest { background: var(--surface); color: var(--fg); border: 2px solid var(--accent); }
+.rest-done { color: var(--ok); font-weight: 600; }
+.part-chip { font-size: 12px; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 3px 10px; }
 .hcard .joke { font-size: 14px; color: var(--muted); }
 dialog {
   width: min(600px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
@@ -782,6 +793,8 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   const BADGES_SENT_KEY = 'nareshka-badges-sent';
   const DAY_MIN = 10; // день засчитывается в серию после 10 карточек
   const REVIEW_DAYS = [1, 3, 7, 14]; // интервальное повторение ошибок: через сколько дней вернуть карточку
+  const DAILY_KEY = 'nareshka-daily';
+  let daily = lsGet(DAILY_KEY) || {}; // { d: дата, m: модуль, k: ключ карточки, done }
   let progress = lsGet(PROG_KEY) || {}; // { модуль: [ключи карточек, решённых верно с первой попытки] }
   let mistakes = lsGet(MIST_KEY) || {}; // { ключ карточки: { m: модуль, t: время ошибки, s: шаг повторения, d: когда повторить } }
   const dueOf = e => (e.d == null ? e.t || 0 : e.d);
@@ -800,10 +813,14 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   window.trackAnswer = (s, card, ok) => {
     const mod = (s.mod.modOf && s.mod.modOf.get(card)) || s.mod;
     const key = cardKey(card);
-    const first = s.round === 1; // в зачёт идёт только первая попытка
-    if (first && ok) {
+    const first = s.round === 1; // в рейтинг идёт только первая попытка
+    if (ok) {
+      // Карточка решена, если хоть раз ответили верно (в том числе в круге ошибок).
       const set = progSet(mod.id);
       if (!set.has(key)) { set.add(key); progress[mod.id] = [...set]; lsSet(PROG_KEY, progress); }
+    }
+    if (s.mod.virtual && s.mod.daily) { daily.done = true; lsSet(DAILY_KEY, daily); }
+    if (first && ok) {
       const e = mistakes[key];
       if (e && dueOf(e) <= Date.now()) {
         // Верно в срок: следующий шаг интервального повторения, после последнего — выучено.
@@ -829,18 +846,66 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     if (queue.length >= 10) flushTrack();
   };
 
-  function progressOf(mod) {
-    if (!mod.cards.length) return 0;
-    const local = progSet(mod.id).size;
+  /* ---------- Прогресс: тема, раздел, экзамен ---------- */
+  // Сколько карточек из списка уже решено верно хотя бы раз.
+  const doneOf = (mod, cards) => { const set = progSet(mod.id); return (cards || mod.cards).filter(c => set.has(cardKey(c))).length; };
+  const progPct = (done, total) => (!total ? 0 : done >= total ? 100 : Math.min(99, Math.floor(done / total * 100)));
+
+  function modDone(mod) {
+    const local = doneOf(mod);
     const remote = server && server.modules ? Number(server.modules[mod.id] || 0) : 0;
-    return Math.min(100, Math.floor(Math.max(local, remote) / mod.cards.length * 100));
+    return Math.min(mod.cards.length, Math.max(local, remote));
+  }
+  function progressOf(mod) { return progPct(modDone(mod), mod.cards.length); }
+
+  function progLine(done, total, text) {
+    const p = progPct(done, total);
+    return h('span', { class: 'mini-prog' + (p === 100 ? ' full' : '') },
+      h('span', { class: 'progress' }, h('i', { style: `width:${p}%` })),
+      h('span', { class: 'count', text: text || (p === 100 ? '✓ всё решено' : `решено ${done} из ${total}`) }));
   }
 
-  window.tileExtra = mod => (mod.cards.length
-    ? h('div', { class: 'tile-prog' },
-        h('div', { class: 'progress' }, h('i', { style: `width:${progressOf(mod)}%` })),
-        h('span', { class: 'count', text: `выучено ${progressOf(mod)}%` }))
-    : '');
+  window.tileExtra = mod => {
+    if (!mod.cards.length) return '';
+    const done = modDone(mod), total = mod.cards.length, left = total - done;
+    return h('div', { class: 'tile-prog' }, progLine(done, total, left ? `решено ${progPct(done, total)}% · осталось ${left}` : '✓ всё решено'));
+  };
+
+  // Прогресс раздела (или группы разделов) на странице темы.
+  window.partExtra = (mod, names) => {
+    const set = new Set(names);
+    const cards = mod.cards.filter(c => set.has(c.part || 'Другое'));
+    return progLine(doneOf(mod, cards), cards.length);
+  };
+
+  // Прогресс экзамена или раздела экзамена на плашке.
+  window.plaqueExtra = (examId, secId) => {
+    const mods = state.modules.filter(m => m.exam === examId && (!secId || m.section === secId) && m.cards.length);
+    if (!mods.length) return '';
+    const total = mods.reduce((n, m) => n + m.cards.length, 0);
+    const done = mods.reduce((n, m) => n + modDone(m), 0);
+    const p = progPct(done, total);
+    return progLine(done, total, p === 100 ? '✓ всё решено' : p < 1 ? (done ? `решено ${cardsWord(done)}` : 'ещё не начато') : `решено ${p}% · ${done} из ${total}`);
+  };
+
+  // Кнопка «Дорешать оставшиеся» на странице темы.
+  window.restButton = mod => {
+    const left = mod.cards.length - doneOf(mod);
+    if (!mod.cards.length) return '';
+    if (!left) return h('p', { class: 'rest-done', text: '✓ Все карточки темы решены. Ошибки будут возвращаться на повторение.' });
+    return h('button', { class: 'part all rest', type: 'button', onclick: () => go('rest-' + mod.id) },
+      h('span', { text: '🎯 Дорешать оставшиеся' }),
+      h('span', { class: 'count', text: cardsWord(left) }));
+  };
+
+  function restSession(mod) {
+    const set = progSet(mod.id);
+    const cards = mod.cards.filter(c => !set.has(cardKey(c)));
+    if (!cards.length) return false;
+    const v = { id: 'v', title: mod.title + ' · осталось', exam: mod.exam, cards, virtual: true, backTo: partsOf(mod).length > 1 ? 'task-' + mod.id : backOf(mod), modOf: new Map(cards.map(c => [c, mod])) };
+    startSession(v, 'all');
+    return true;
+  }
 
   function allDays() {
     const all = { ...days };
@@ -904,22 +969,32 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     return { n: later.length, when };
   }
 
-  function virtualSession(title, items) {
-    const mod = { id: 'v', title, exam: '', cards: items.map(x => x.card), virtual: true, modOf: new Map(items.map(x => [x.card, x.mod])) };
+  function virtualSession(title, items, extra) {
+    const mod = { id: 'v', title, exam: '', cards: items.map(x => x.card), virtual: true, modOf: new Map(items.map(x => [x.card, x.mod])), ...(extra || {}) };
     startSession(mod, 'all');
   }
 
+  // Карточка дня: выбирается один раз на день и запоминается, после ответа — «решена».
   function dayCard() {
+    const today = dateKey(new Date());
     const pool = [];
-    for (const id of ['t4', 't5', 't7', 't9', 't10']) {
+    for (const id of ['t4', 't5', 't7', 't9', 't10', 'o1', 'o2', 'o3', 'o5']) {
       const m = state.modules.find(x => x.id === id);
-      if (m) for (const c of m.cards) pool.push({ card: c, mod: m });
+      if (m) for (const c of m.cards) if (c.kind !== 'multi') pool.push({ card: c, mod: m });
     }
     if (!pool.length) return null;
+    if (daily.d === today) {
+      const hit = pool.find(x => x.mod.id === daily.m && cardKey(x.card) === daily.k);
+      if (hit) return hit;
+    }
     let hash = 0;
-    for (const ch of dateKey(new Date())) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-    return pool[(hash * 2654435761 >>> 0) % pool.length];
+    for (const ch of today) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    const pick = pool[(hash * 2654435761 >>> 0) % pool.length];
+    daily = { d: today, m: pick.mod.id, k: cardKey(pick.card), done: daily.d === today ? !!daily.done : false };
+    lsSet(DAILY_KEY, daily);
+    return pick;
   }
+  const dailyDone = () => daily.d === dateKey(new Date()) && !!daily.done;
 
   /* ---------- Значки ---------- */
   const MOD_BADGES = {
@@ -1103,9 +1178,13 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
           h('span', { text: me
             ? 'Бот напишет вечером, если вы ещё не позанимались, — чтобы серия не сгорела. Иногда смешно 😄'
             : 'Зарегистрируйтесь, и бот будет напоминать о карточках, чтобы серия не сгорела.' })),
-        dc && h('button', { class: 'hcard action', type: 'button', onclick: () => go('daycard') },
-          h('b', { text: '⭐ Карточка дня' }),
-          h('span', { text: dcText }))
+        dc && (dailyDone()
+          ? h('div', { class: 'hcard done' },
+              h('b', { text: '⭐ Карточка дня решена' }),
+              h('span', { text: 'Новая карточка появится завтра.' }))
+          : h('button', { class: 'hcard action', type: 'button', onclick: () => go('daycard') },
+              h('b', { text: '⭐ Карточка дня' }),
+              h('span', { text: dcText })))
       )
     );
   };
@@ -1401,8 +1480,16 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     if (hash === 'daycard') {
       const dc = dayCard();
       if (!dc) return false;
-      virtualSession('Карточка дня', [dc]);
+      if (dailyDone()) { toast('Карточка дня уже решена. Новая появится завтра'); return false; }
+      virtualSession('Карточка дня', [dc], { daily: true });
       return true;
+    }
+    const rest = hash.match(/^rest-([a-z0-9]+)$/);
+    if (rest) {
+      const mod = state.modules.find(m => m.id === rest[1]);
+      if (mod && restSession(mod)) return true;
+      toast('Все карточки темы уже решены');
+      return false;
     }
     return false;
   };
@@ -1880,8 +1967,11 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
     const mod = modOfCard(card);
     if (!mod) return '';
     const list = theoryFor(mod.id, card.part || 'Другое');
-    if (!list.length) return '';
-    return h('button', { class: 'rule-btn', type: 'button', text: '📘 Правило', onclick: () => showTheoryModal(list, list.length > 1 ? 'Правила темы' : 'Повторим правило') });
+    // В смешанной тренировке подписываем, из какого раздела карточка.
+    const mixed = session && (session.mod.virtual || !/^\d+$/.test(String(session.partId)));
+    const chip = mixed && card.part ? h('span', { class: 'part-chip', text: (session.mod.virtual ? mod.title + ' · ' : '') + card.part }) : '';
+    const btn = list.length ? h('button', { class: 'rule-btn', type: 'button', text: '📘 Правило', onclick: () => showTheoryModal(list, list.length > 1 ? 'Правила темы' : 'Повторим правило') }) : '';
+    return chip ? h('span', { class: 'card-tools' }, chip, btn) : btn;
   };
 
   // Кнопка «Шпаргалка» на странице задания.
@@ -2964,7 +3054,8 @@ function renderHome() {
         return h('button', { class: 'plaque', type: 'button', onclick: () => go('exam-' + exam.id) },
           h('span', { class: 'plaque-name', text: exam.name }),
           h('span', { class: 'plaque-sub', text: exam.sub }),
-          h('span', { class: 'plaque-count', text: exam.sections ? exam.sections.map(s => s.name).join(', ') : count ? `${count} ${plural(count, 'задание', 'задания', 'заданий')}` : 'Задания скоро появятся' })
+          h('span', { class: 'plaque-count', text: exam.sections ? exam.sections.map(s => s.name).join(', ') : count ? `${count} ${plural(count, 'задание', 'задания', 'заданий')}` : 'Задания скоро появятся' }),
+          window.plaqueExtra ? window.plaqueExtra(exam.id) : ''
         );
       })
     ),
@@ -3004,7 +3095,8 @@ function renderExam(exam) {
         return h('button', { class: 'plaque', type: 'button', onclick: () => go(`sec-${exam.id}-${sec.id}`) },
           h('span', { class: 'plaque-name sm', text: sec.name }),
           h('span', { class: 'plaque-sub', text: sec.sub }),
-          h('span', { class: 'plaque-count', text: `${n} ${plural(n, 'тема', 'темы', 'тем')}` })
+          h('span', { class: 'plaque-count', text: `${n} ${plural(n, 'тема', 'темы', 'тем')}` }),
+          window.plaqueExtra ? window.plaqueExtra(exam.id, sec.id) : ''
         );
       }))
     );
@@ -3060,6 +3152,7 @@ function renderTask(mod) {
     h('span', { class: 'part-name' },
       h('span', { text: parts[i].name }),
       h('small', { class: 'part-count', text: cardsWord(parts[i].count) }),
+      window.partExtra ? window.partExtra(mod, [parts[i].name]) : '',
       descOf(parts[i].name) && h('small', { class: 'part-desc', text: descOf(parts[i].name) })
     )
   );
@@ -3070,6 +3163,7 @@ function renderTask(mod) {
           h('span', { class: 'part-name' },
             h('span', { class: 'pgroup-title', text: g.name }),
             h('small', { class: 'part-count', text: cardsWord(total(g.items)) }),
+            window.partExtra ? window.partExtra(mod, g.items.map(i => parts[i].name)) : '',
             (mod.groupDescs || {})[g.name] && h('small', { class: 'part-desc', text: mod.groupDescs[g.name] })
           )
         ),
@@ -3092,6 +3186,7 @@ function renderTask(mod) {
       h('span', { text: 'Все карточки' }),
       h('span', { class: 'count', text: cardsWord(mod.cards.length) })
     ),
+    window.restButton ? window.restButton(mod) : '',
     h('p', { class: 'pick-hint', text: 'Или отметьте один или несколько разделов галочками и нажмите «Начать».' }),
     h('div', { class: 'pgroups' }, groups.map(groupBlock)),
     h('div', { class: 'start-bar' }, startBtn)
@@ -3176,7 +3271,7 @@ function startSession(mod, partId) {
   showCard();
 }
 
-const sessionBack = () => (session.mod.virtual ? '' : partsOf(session.mod).length > 1 ? 'task-' + session.mod.id : backOf(session.mod));
+const sessionBack = () => (session.mod.virtual ? (session.mod.backTo || '') : partsOf(session.mod).length > 1 ? 'task-' + session.mod.id : backOf(session.mod));
 const sessionTitle = () => (session.mod.virtual ? session.mod.title : moduleName(session.mod)) + (session.partName ? ' · ' + session.partName : '');
 
 const percent = () => Math.round(session.mastered.size / session.total * 100);
