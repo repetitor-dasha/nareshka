@@ -226,6 +226,32 @@ button, textarea, input { font: inherit; color: inherit; }
 .diag-row.weak .diag-tag { color: var(--bad); }
 .diag-parts { font-size: 14px; color: var(--muted); margin: 0; }
 .diag-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mini-prog .progress { display: block; min-width: 60px; flex: 1 1 60px; }
+.mini-prog { flex-wrap: wrap; min-width: 0; }
+.mini-prog .count { white-space: normal; min-width: 0; }
+.part-name .mini-prog { width: min(100%, 280px); margin-top: 4px; }
+.plaque .mini-prog { flex-direction: column; align-items: stretch; gap: 4px; max-width: 100%; }
+.plaque .mini-prog .progress { flex: none; width: 100%; min-width: 0; }
+.prompt.text { font-size: clamp(17px, 4.2vw, 20px); line-height: 1.6; font-weight: 500; }
+.options.digits { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; }
+.options.digits .option { justify-content: center; padding: 12px 6px; }
+.options.digits .option .key { display: none; }
+.options.digits .option .txt { font-size: 20px; font-weight: 700; flex: none; }
+.voice-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn.voice { font-size: 16px; }
+.diag-choices { display: grid; gap: 10px; }
+.diag-list { display: grid; gap: 10px; }
+.diag-row { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.diag-row.good { border-left-color: var(--ok); }
+.diag-row.mid { border-left-color: #d9a400; }
+.diag-row.weak { border-left-color: var(--bad); }
+.diag-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; justify-content: space-between; width: 100%; }
+.diag-head b { font-size: 17px; overflow-wrap: anywhere; }
+.diag-tag { font-size: 13px; font-weight: 600; color: var(--muted); }
+.diag-row.good .diag-tag { color: var(--ok); }
+.diag-row.weak .diag-tag { color: var(--bad); }
+.diag-parts { font-size: 14px; color: var(--muted); margin: 0; }
+.diag-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .lede { color: var(--muted); max-width: 60ch; }
 .banner { padding: 12px 14px; border-radius: 10px; background: var(--bad-soft); color: var(--fg); font-size: 15px; }
 
@@ -2569,56 +2595,10 @@ select { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 16px; back
   window.tutor = { TUTOR, trial, writeTutor, renderAbout };
 })();
 
-/* ---------- Озвучка ударений и диагностика на старте ---------- */
+/* ---------- Диагностика на старте и задания 6–7 ОГЭ ---------- */
 (function () {
   const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* без памяти браузера */ } };
-
-  /* ---------- 🔊 Озвучка ударений ---------- */
-  const VOICE_AUTO_KEY = 'nareshka-voice-auto';
-  const synth = window.speechSynthesis;
-  let ruVoice = null;
-  function pickVoice() {
-    if (!synth) return;
-    const list = synth.getVoices().filter(v => /^ru(-|_|$)/i.test(v.lang));
-    // Сетевые голоса (Google, Microsoft Online) ставят ударение точнее встроенных.
-    ruVoice = list.find(v => /google|online|natural/i.test(v.name)) || list[0] || null;
-  }
-  if (synth) {
-    pickVoice();
-    if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice);
-  }
-  const canSpeak = () => !!(synth && ruVoice);
-  const autoOn = () => lsGet(VOICE_AUTO_KEY) !== false;
-
-  // «бАнты» → «ба́нты»: знак ударения U+0301 после ударной гласной.
-  const toSpeech = word => [...word].map(ch => (isStressed(ch) ? ch.toLowerCase() + (ch.toLowerCase() === 'ё' ? '' : '́') : ch)).join('');
-
-  function speak(word) {
-    if (!canSpeak()) return;
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(toSpeech(word));
-    u.voice = ruVoice;
-    u.lang = ruVoice.lang || 'ru-RU';
-    u.rate = 0.85;
-    synth.speak(u);
-  }
-
-  window.afterAnswer = (q, card, ok, feedback) => {
-    if (!q.isAccent || !canSpeak()) return;
-    const word = q.answers[0];
-    const auto = h('button', { class: 'linkbtn', type: 'button', text: autoOn() ? 'Озвучивать при ошибке: вкл' : 'Озвучивать при ошибке: выкл' });
-    auto.onclick = () => {
-      lsSet(VOICE_AUTO_KEY, !autoOn());
-      auto.textContent = autoOn() ? 'Озвучивать при ошибке: вкл' : 'Озвучивать при ошибке: выкл';
-    };
-    feedback.append(h('div', { class: 'voice-row' },
-      h('button', { class: 'btn voice', type: 'button', onclick: () => speak(word) }, '🔊 Послушать: ', stressedText(word)),
-      !ok && auto
-    ));
-    if (!ok && autoOn()) speak(word);
-    return true; // не листать дальше сразу: пусть можно успеть послушать
-  };
 
   /* ---------- Задание 7 ОГЭ: «Почему не это» для цифр ---------- */
   const baseWhy = window.whyNot;
